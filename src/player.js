@@ -101,4 +101,3 @@ export class TelevisionPlayer {
     return { state: this.player.getPlayerState(), seconds: this.player.getCurrentTime() || 0, duration: this.player.getDuration() || 0, index: this.queue ? this.queueIndex : Math.max(0, this.player.getPlaylistIndex()), title: data.title || '', videoId: data.video_id || '', playlist: this.queue || this.player.getPlaylist() || [] };
   }
 }
-

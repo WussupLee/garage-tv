@@ -120,6 +120,13 @@ async function tune(id) {
       const mark = bookmarks[id];
       player.playlist(c.playlist, mark && mark.playlist === c.playlist ? mark : {}, videos);
     }
+    // Some embeds cue the video without emitting PLAYING or onAutoplayBlocked.
+    // Make the existing A start action available instead of waiting on black.
+    setTimeout(() => {
+      if (version !== loadVersion || presentation.state.mode !== 'tuning' || !player.ready) return;
+      if (player.snapshot().state === 1) presentation.playing(version);
+      else presentation.blocked(version);
+    }, 3000);
   } catch (error) {
     if (version !== loadVersion) return;
     log(error.message); presentation.unavailable(version);
