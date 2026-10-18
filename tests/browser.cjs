@@ -94,6 +94,13 @@ async function main() {
   }
   assert.equal(await page.evaluate(()=>__maxActive),1);assert.deepEqual(errors,[]);
   console.log('PASS: guide focus/ON, no browse retune, timing, stale iframe callbacks, single active player, keyboard/gamepad, settings/CRUD/import/storage, virtual return seeks, responsive geometry.');
+  const sources=await browser.newPage();await sources.addInitScript(fakeAPI);await sources.addInitScript(()=>Math.random=()=>0);
+  await sources.goto('http://127.0.0.1:4173/garage-tv/');await sources.waitForFunction(()=>document.querySelector('#app').dataset.mode==='playing');
+  assert.equal(await sources.evaluate(()=>__active.options.videoId),'92fLApYaCGI');
+  assert.equal(await sources.evaluate(()=>__calls[0].videoId),'92fLApYaCGI');
+  await sources.evaluate(()=>__active.emit('onStateChange',0));
+  await sources.waitForFunction(()=>__calls.some(call=>call.videoId==='2T2z658blzE'));
+  await sources.close();
   // Visual acceptance captures: synthetic schedules and optional credited reference image exist only here.
   const visual=await browser.newPage({viewport:{width:1280,height:720},timezoneId:'UTC'});
   await visual.addInitScript(fakeAPI);await visual.addInitScript(()=>{Math.random=()=>0.45;window.__autoPlay=false;});

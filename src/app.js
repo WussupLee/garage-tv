@@ -8,6 +8,7 @@ const $ = id => document.getElementById(id);
 const number = id => String(id).padStart(3, '0');
 let config, tuned = null, selected = null, panel = null;
 let loadVersion = 0, scheduledKey = '', degraded = false, demo = false;
+let playlistSnapshots = {};
 let lastPresentationMode = 'launch';
 let padInfo = { supported: typeof navigator.getGamepads === 'function', pads: [] };
 let bookmarks = readStorage(BOOKMARK_KEY, {});
@@ -69,7 +70,7 @@ const player = new TelevisionPlayer({
     }
     if (state === 3) presentation.buffering(requestId);
     if (state === 2) presentation.blocked(requestId, true);
-    if (state === 0 && scheduleNow()) loadScheduled(true);
+    if (state === 0) { if (player.queue) player.next(); else if (scheduleNow()) loadScheduled(true); }
   },
   error: (code, requestId) => {
     if (requestId !== loadVersion) return;
@@ -111,12 +112,13 @@ async function tune(id) {
   if (id === 0) { presentation.directory(version); return; }
   if (!configured(c)) { presentation.unavailable(version); return; }
   try {
-    await player.ensure();
+    const videos = playlistSnapshots[c.playlist]?.videos?.map(item => item.videoId);
+    await player.ensure(c.schedule ? { videoId: scheduleNow(c).program.videoId } : videos?.length ? { videoId: videos[0] } : { playlist: c.playlist });
     if (version !== loadVersion || presentation.state.mode === 'unavailable') return;
     if (c.schedule) loadScheduled(true);
     else {
       const mark = bookmarks[id];
-      player.playlist(c.playlist, mark && mark.playlist === c.playlist ? mark : {});
+      player.playlist(c.playlist, mark && mark.playlist === c.playlist ? mark : {}, videos);
     }
   } catch (error) {
     if (version !== loadVersion) return;
@@ -332,7 +334,7 @@ function startPlayback() {
   if (!channel()) return;
   if (presentation.state.mode === 'unavailable') { if (demo) $('test-youtube').click(); else tune(tuned); return; }
   if (!configured(channel()) && !demo) { tune(tuned); return; }
-  if (player.ready && player.snapshot().videoId) {
+  if (player.ready) {
     if (scheduleNow()) loadScheduled(true); else player.start();
   } else if (demo) $('test-youtube').click();
   else tune(tuned);
@@ -376,7 +378,7 @@ $('test-youtube').onclick = async () => {
   demo = true; degraded = false; scheduledKey = '';
   player.beginRequest(version); presentation.request(version, tuned); closePanel();
   log('YouTube diagnostic video; not channel programming.');
-  try { await player.ensure(); if (version !== loadVersion || presentation.state.mode === 'unavailable') return; player.video('M7lc1UVf-VE'); }
+  try { await player.ensure({ videoId: 'M7lc1UVf-VE' }); if (version !== loadVersion || presentation.state.mode === 'unavailable') return; player.video('M7lc1UVf-VE'); }
   catch (error) { if (version === loadVersion) { log(error.message); presentation.unavailable(version); } }
 };
 
@@ -404,6 +406,10 @@ async function boot() {
     const response = await fetch('./data/default-config.json', { cache: 'no-cache' });
     if (!response.ok) throw new Error('Default configuration could not load (' + response.status + ').');
     const defaults = validateConfig(await response.json());
+    try {
+      const snapshots = await fetch('./data/playlist-snapshots.json');
+      if (snapshots.ok) playlistSnapshots = (await snapshots.json()).playlists || {};
+    } catch (error) { log('Playlist snapshots could not load; using playlist feeds. ' + error.message); }
     const saved = readStorage(CONFIG_KEY, null);
     try { config = saved ? upgradeChannelDefaults(validateConfig(saved), defaults) : defaults;
       if (saved) { try { writeStorage(CONFIG_KEY, config); } catch (error) { log(error.message); } } }
