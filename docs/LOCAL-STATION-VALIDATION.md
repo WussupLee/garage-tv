@@ -20,3 +20,7 @@ Image fixture credit: Asakusa bumper, https://www.bumpworthy.com/bumps/53/ ; htt
 ## Still requires Xbox One and live YouTube
 
 Autoplay with audio and trusted A/cursor input; D-pad/A/B/Y/Menu mappings and browser-reserved Back; focus returning from the YouTube iframe; TV overscan/fullscreen at 720p/1080p; real playlist embeddability and transitions; ads/buffering behavior; rapid surfing without leaked audio; schedule seeks and drift; long-session performance. Channels 003/004 still need real playlist sources. No verified production duration manifests exist.
+
+## Six-channel extension
+
+User authorized 005 OFF THE AIR alongside 004 RETRO TV (Nostalgia). Six rows use 58 1/3 px height within the same 350 px row area, preserving fonts, columns and outer geometry. All five YouTube defaults are now supplied. Five-channel saved settings gain 005 and fill only empty 003/004 sources; custom sources and schedules are preserved. Thirteen unit tests and the browser suite pass, including reaching/selecting 005, wrapping 005 to 000 and back, and settings migration. This supersedes the earlier missing-source and five-row notes above. Live YouTube/Xbox testing remains outstanding.

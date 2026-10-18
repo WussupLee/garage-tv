@@ -20,10 +20,10 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 #playback-bug { position: absolute; left: 1112px; top: 600px; width: 104px; height: 66px; padding: 8px 12px; border: 0; background: #000; z-index: 3; }
 #playback-bug img { display: block; width: 80px; height: 49.87px; }
 .guide { z-index: 10; pointer-events: none; }
-.guide-rows { position: absolute; left: 64px; top: 270px; width: 1152px; height: 350px; outline: none; pointer-events: auto; overflow: hidden; }
-.guide-row { position: relative; height: 70px; width: 1152px; color: #fff; background: #000; cursor: pointer; }
+.guide-rows { position: absolute; left: 64px; top: 270px; width: 1152px; height: 350px; outline: none; pointer-events: auto; overflow: auto; scrollbar-width: none; }
+.guide-row { position: relative; height: var(--row-height, 70px); width: 1152px; color: #fff; background: #000; cursor: pointer; }
 .guide-row.is-selected { background: #fff; color: #000; }
-.guide-row svg { display: block; width: 1152px; height: 70px; overflow: hidden; }
+.guide-row svg { display: block; width: 1152px; height: var(--row-height, 70px); overflow: hidden; }
 .guide-row .on-marker { visibility: hidden; }
 .guide-row.is-tuned .on-marker { visibility: visible; }
 button, input, textarea, select, a { font: inherit; }

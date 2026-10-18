@@ -1,4 +1,4 @@
-import { CONFIG_KEY, BOOKMARK_KEY, clone, validateConfig, startupChannel, configured, readStorage, writeStorage } from './config.js';
+import { CONFIG_KEY, BOOKMARK_KEY, upgradeChannelDefaults, clone, validateConfig, startupChannel, configured, readStorage, writeStorage } from './config.js';
 import { broadcastAt, orderedPrograms } from './schedule.js';
 import { TelevisionPlayer } from './player.js';
 import { GamepadInput, keyboardInput, moveFocus } from './input.js';
@@ -146,7 +146,7 @@ function skip() {
 }
 
 function changeChannel(delta) {
-  const list = config.channels.filter(c => c.enabled && c.id <= 4);
+  const list = config.channels.filter(c => c.enabled);
   const index = list.findIndex(c => c.id === tuned);
   const c = list[(index + delta + list.length) % list.length];
   closePanel(); tune(c.id);
@@ -174,14 +174,19 @@ function fitText(node, value, width, size, weight = 400) {
 function refreshGuide() {
   if (!config) return;
   const rows = $('guide-rows');
+  const rowHeight = config.channels.length > 5 ? 350 / 6 : 70;
+  rows.style.setProperty('--row-height', rowHeight + 'px');
   // One listbox owns focus; only existing text nodes change during metadata refresh.
-  config.channels.filter(c => c.id <= 4).forEach(c => {
+  config.channels.forEach(c => {
     let row = rows.querySelector('[data-channel="' + c.id + '"]');
     if (!row) {
       row = document.createElement('div'); row.className = 'guide-row'; row.dataset.channel = c.id; row.id = 'guide-channel-' + c.id; row.setAttribute('role', 'option');
       row.innerHTML = '<svg viewBox="0 0 1152 70" aria-hidden="true"><text class="on-marker bold" x="18" y="43" font-size="18">ON</text><text data-part="number" class="bold" x="62" y="45" font-size="28"></text><text data-part="station" class="bold" x="154" y="43" font-size="24"></text><text data-part="now" x="476" y="43" font-size="22"></text><text data-part="next" x="832" y="43" font-size="22"></text></svg>';
       row.addEventListener('click', () => { selected = c.id; confirmGuide(); }); rows.append(row);
     }
+    const svg = row.querySelector('svg');
+    svg.setAttribute('viewBox', '0 0 1152 ' + rowHeight);
+    row.querySelectorAll('text').forEach(text => text.setAttribute('y', rowHeight / 2 + (text.dataset.part === 'number' ? 10 : 8)));
     const info = programInfo(c);
     const current = !demo && c.id === presentation.state.current;
     row.classList.toggle('is-tuned', current); row.classList.toggle('is-selected', c.id === selected);
@@ -194,6 +199,7 @@ function refreshGuide() {
   });
   Array.from(rows.children).forEach(row => { if (!config.channels.some(c => c.id === Number(row.dataset.channel))) row.remove(); });
   if (selected !== null) rows.setAttribute('aria-activedescendant', 'guide-channel-' + selected);
+  if (panel === 'guide') rows.querySelector('.is-selected')?.scrollIntoView({ block: 'nearest' });
 }
 
 function confirmGuide() {
@@ -203,7 +209,7 @@ function confirmGuide() {
   closePanel(); if (!alreadyPlaying) tune(id);
 }
 function moveGuide(delta) {
-  const list = config.channels.filter(c => c.id <= 4);
+  const list = config.channels;
   const index = Math.max(0, list.findIndex(c => c.id === selected));
   selected = list[Math.max(0, Math.min(list.length - 1, index + delta))].id;
   refreshGuide(); status('Guide. ' + number(selected) + ' ' + list.find(c => c.id === selected).title);
@@ -399,11 +405,12 @@ async function boot() {
     if (!response.ok) throw new Error('Default configuration could not load (' + response.status + ').');
     const defaults = validateConfig(await response.json());
     const saved = readStorage(CONFIG_KEY, null);
-    try { config = saved ? validateConfig(saved) : defaults; }
+    try { config = saved ? upgradeChannelDefaults(validateConfig(saved), defaults) : defaults;
+      if (saved) { try { writeStorage(CONFIG_KEY, config); } catch (error) { log(error.message); } } }
     catch (error) { config = defaults; log('Saved configuration invalid; using deployable defaults. ' + error.message); }
     renderChannelSelect(1); renderDirectory(); renderServiceEditor(); refreshGuide();
     const initial = startupChannel(config.channels);
-    await tune(initial ? initial.id : (config.channels.find(c => c.id >= 1 && c.id <= 4 && c.enabled) || config.channels.find(c => c.enabled)).id);
+    await tune(initial ? initial.id : (config.channels.find(c => c.id >= 1 && c.enabled) || config.channels.find(c => c.enabled)).id);
     if (!initial) log('No configured YouTube channels. Use S / Settings to add a source.');
   } catch (error) { log(error.message); presentation.unavailable(loadVersion); }
   finally { clearTimeout(launchTimer); }

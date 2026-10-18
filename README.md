@@ -19,11 +19,11 @@ To try the local build on Xbox before publishing, run the server on your PC, kee
 
 ## Sources and current functionality
 
-Channels: 000 LIVE SPORTS, 001 SPORTS TV, 002 INDIE / POP, 003 RAP / R&B and 004 RETRO TV. The TV guide and channel surfing are deliberately limited to these five channels.
+Channels: 000 LIVE SPORTS, 001 SPORTS TV, 002 INDIE / POP, 003 RAP / R&B, 004 RETRO TV (Nostalgia), and 005 OFF THE AIR. All six guide rows fit inside the original safe area with unchanged type sizes.
 
-The public https://www.youtube.com/@NostalgiaTV-f4p/playlists page was accessible from the PC on 2026-10-18. Its “Sports” and “Indie / Pop” playlist IDs were verified on that page and added to the deployable defaults for channels 001 and 002. Its “Animation” playlist was left unmatched. **Rap / R&B and Retro TV still need matching public playlists.** Settings accepts pasted public playlist URLs/IDs. Save on the Xbox itself, or export PC settings and commit that JSON as `data/default-config.json` to ship them to all new browsers. An existing local configuration takes precedence; use Import JSON to update it.
+The user supplied all five YouTube playlists directly. See [the playlist assignments](docs/PLAYLISTS.md). Existing five-channel saved settings gain 005 automatically; empty sources for 003/004 are filled from these defaults. Custom playlists, schedules, enabled states, and service links are preserved. Once upgraded, deliberately clearing a source remains supported. Settings accepts replacement public playlist URLs/IDs. PC and Xbox storage remain separate.
 
-The official YouTube IFrame Player API maintains one active player, replacing the iframe on channel requests to isolate stale callbacks. Features include source switching, continuous playlist looping, local position bookmarks, explicit autoplay recovery, missing/blocked-video recovery, mute, loading timeout and retry. Configured startup channels are randomly selected from enabled 001–004; a valid URL cannot guarantee embeddability, so runtime failures show recovery controls. Missing sources show CHANNEL UNAVAILABLE; use S or the controls menu to configure them. Diagnostics has a separately labeled official YouTube API demo video for connection testing.
+The official YouTube IFrame Player API maintains one active player, replacing the iframe on channel requests to isolate stale callbacks. Features include source switching, continuous playlist looping, local position bookmarks, explicit autoplay recovery, missing/blocked-video recovery, mute, loading timeout and retry. Configured startup channels are randomly selected from enabled 001–005; a valid URL cannot guarantee embeddability, so runtime failures show recovery controls. Missing sources show CHANNEL UNAVAILABLE; use S or the controls menu to configure them. Diagnostics has a separately labeled official YouTube API demo video for connection testing.
 
 The guide keeps full-size video and audio running behind opaque black panels. Its white row shows focus; ON marks the channel actually playing. Browsing does not retune until confirmation. NOW/NEXT uses actual metadata or verified schedules; unknown values are UNAVAILABLE / -. Unscheduled playlists explicitly have unknown next-video timing and do not advance while away. Verified-duration manifests enable deterministic virtual broadcasts with timeline seeks and stable seeded order. Read [docs/SCHEDULES.md](docs/SCHEDULES.md). Real YouTube/Xbox timing remains experimental until tested with actual content.
 
@@ -80,7 +80,7 @@ Automated tests cover 720p/1080p layout, source switching, overlay expiry, guide
 - `src/app.js`: app state, guide, settings and recovery UI.
 - `src/presentation.js`: request-scoped presentation timers and player-event state.
 - `styles.css`: Local Station geometry and monochrome styling.
-- `data/default-config.json`: editable deployment defaults with two publicly verified playlist IDs.
+- `data/default-config.json`: editable deployment defaults with five user-supplied playlist IDs.
 - `scripts/`: static build and local development server.
 - `tests/`: pure unit and controlled browser tests.
 

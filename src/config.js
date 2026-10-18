@@ -67,7 +67,7 @@ export function configured(channel) {
 }
 
 export function startupChannel(channels, random = Math.random) {
-  const candidates = channels.filter(c => c.id >= 1 && c.id <= 4 && configured(c));
+  const candidates = channels.filter(c => c.id >= 1 && configured(c));
   return candidates.length ? candidates[Math.floor(random() * candidates.length) % candidates.length] : null;
 }
 
@@ -77,4 +77,19 @@ export function readStorage(key, fallback) {
 
 export function writeStorage(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) { throw new Error('Browser storage is unavailable or full. Export your configuration before leaving.'); }
+}
+
+// Upgrade the original five-channel saved configuration without replacing custom sources.
+export function upgradeChannelDefaults(saved, defaults) {
+  const next = clone(saved);
+  if (next.channels.some(c => c.id === 5)) return next;
+  for (const incoming of defaults.channels) {
+    const existing = next.channels.find(c => c.id === incoming.id);
+    if (!existing) next.channels.push(clone(incoming));
+    else if ([3, 4].includes(existing.id) && !existing.playlist && !existing.schedule) {
+      existing.playlist = incoming.playlist;
+      existing.description = incoming.description;
+    }
+  }
+  return validateConfig(next);
 }

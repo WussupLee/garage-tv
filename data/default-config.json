@@ -2,11 +2,66 @@
   "version": 1,
   "seed": "garage-tv-v1",
   "channels": [
-    { "id": 0, "title": "LIVE SPORTS", "description": "Streaming service directory", "sourceType": "directory", "playlist": "", "enabled": true, "schedule": null },
-    { "id": 1, "title": "SPORTS TV", "description": "NostalgiaTV public Sports playlist", "sourceType": "youtube", "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66auWzsLO8agSNSQqsitEvR4-", "enabled": true, "schedule": null },
-    { "id": 2, "title": "INDIE / POP", "description": "NostalgiaTV public Indie / Pop playlist", "sourceType": "youtube", "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66atCuXs45FwMHbId06vci8Th", "enabled": true, "schedule": null },
-    { "id": 3, "title": "RAP / R&B", "description": "Add your public rap / R&B playlist in Settings", "sourceType": "youtube", "playlist": "", "enabled": true, "schedule": null },
-    { "id": 4, "title": "RETRO TV", "description": "Add your public retro TV playlist in Settings", "sourceType": "youtube", "playlist": "", "enabled": true, "schedule": null }
+    {
+      "id": 0,
+      "title": "LIVE SPORTS",
+      "description": "Streaming service directory",
+      "sourceType": "directory",
+      "playlist": "",
+      "enabled": true,
+      "schedule": null
+    },
+    {
+      "id": 1,
+      "title": "SPORTS TV",
+      "description": "NostalgiaTV public Sports playlist",
+      "sourceType": "youtube",
+      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66auWzsLO8agSNSQqsitEvR4-",
+      "enabled": true,
+      "schedule": null
+    },
+    {
+      "id": 2,
+      "title": "INDIE / POP",
+      "description": "NostalgiaTV public Indie / Pop playlist",
+      "sourceType": "youtube",
+      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66atCuXs45FwMHbId06vci8Th",
+      "enabled": true,
+      "schedule": null
+    },
+    {
+      "id": 3,
+      "title": "RAP / R&B",
+      "description": "User-supplied Rap / R&B playlist",
+      "sourceType": "youtube",
+      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66au-YSAWGa6Qzyb8A4_7uQpF",
+      "enabled": true,
+      "schedule": null
+    },
+    {
+      "id": 4,
+      "title": "RETRO TV",
+      "description": "User-supplied Nostalgia playlist",
+      "sourceType": "youtube",
+      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66avrbq8_fQlnbRWQAxuqjCXA",
+      "enabled": true,
+      "schedule": null
+    },
+    {
+      "id": 5,
+      "title": "OFF THE AIR",
+      "description": "User-supplied Off the Air playlist",
+      "sourceType": "youtube",
+      "playlist": "https://www.youtube.com/playlist?list=PLQl8zBB7bPvLWfGCVicg_kVmSVTGml2y4",
+      "enabled": true,
+      "schedule": null
+    }
   ],
-  "services": [ { "id": "kobra", "name": "Kobra matches", "url": "https://ntv.st/matches/kobra" } ]
+  "services": [
+    {
+      "id": "kobra",
+      "name": "Kobra matches",
+      "url": "https://ntv.st/matches/kobra"
+    }
+  ]
 }

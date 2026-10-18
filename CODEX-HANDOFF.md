@@ -1,6 +1,6 @@
 # Garage TV — handoff to Codex on PC
 
-**Status update, 2026-10-18:** The local PC upload and GitHub Actions Pages deployment are complete. The site `https://wussuplee.github.io/garage-tv/` and runtime assets returned HTTP 200. The free short link `https://zip1.io/garagetvlee` redirected there and returned HTTP 200. Public Sports and Indie / Pop playlists were found and added to channels 001 and 002; Rap / R&B and Retro TV remain unconfigured. Real Xbox testing remains open. Publishing instructions and 404/403 reports below describe the earlier state.
+**Status update, 2026-10-18:** The local PC upload and GitHub Actions Pages deployment are complete. The site `https://wussuplee.github.io/garage-tv/` and runtime assets returned HTTP 200. The free short link `https://zip1.io/garagetvlee` redirected there and returned HTTP 200. Public Sports and Indie / Pop playlists were found and added to channels 001 and 002; The user has now supplied all five YouTube playlists: Rap / R&B on 003, Nostalgia on 004 RETRO TV, and Off the Air on new 005. The six-channel update supersedes older five-channel/source-missing notes below. Real Xbox testing remains open. Publishing instructions and 404/403 reports below describe the earlier state.
 
 ## Local Station integration update — 2026-10-18
 

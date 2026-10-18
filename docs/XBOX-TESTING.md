@@ -3,11 +3,11 @@
 Desktop automated checks use a controlled player and simulated controller. They do not establish Xbox or live YouTube compatibility.
 
 1. Open https://zip1.io/garagetvlee in Xbox One Edge; bookmark it. Confirm the Local Station design and safe margins at 720p and 1080p, including TV overscan and fullscreen.
-2. Sports and Indie / Pop have public playlist defaults. Configure real sources for Rap / R&B and Retro TV via S or Controls → Settings. Existing browser configuration takes precedence over defaults.
+2. All five YouTube channels have user-supplied playlist defaults. Confirm 004 RETRO TV uses Nostalgia and 005 OFF THE AIR loads its supplied playlist. Existing custom sources are preserved during the six-channel upgrade.
 3. Check startup among configured channels. TUNING must appear immediately on requests; actual PLAYING reveals video, keeps the label about three seconds, then shows the compact bug. No artificial switch delay.
 4. Test audio autoplay. If PRESS A TO START appears, use A/Enter or the Edge cursor. Test native YouTube controls if a synthetic gamepad action is not accepted as a trusted gesture. Confirm only one stream is audible.
 5. Open Diagnostics via D or Controls. Record controller ID, mapping and raw indices for D-pad/A/B/Y/Menu/LB/RB. Unknown mappings are diagnostic only. Confirm whether Edge reserves B/Back or Menu.
-6. D-pad up/down surfs previous/next and wraps 000–004. Held directions repeat after 350 ms then every 160 ms. A/B/Y and bumpers should trigger once per press. Y toggles the guide; C/Menu or clicking the bug opens utility controls.
+6. D-pad up/down surfs previous/next and wraps 000–005. Held directions repeat after 350 ms then every 160 ms. A/B/Y and bumpers should trigger once per press. Y toggles the guide; C/Menu or clicking the bug opens utility controls.
 7. Open guide during playback. Video stays full-size and audio continues. White focus can move to 001 while ON remains 003. Left/right do nothing. Focus clamps at top/bottom. A confirms, B closes without retuning. Confirming the current channel simply closes. Closing after the OSD timer expires must show the bug, not restart the label timer.
 8. Rapidly surf channels while loading. Late callbacks must not reveal an earlier channel or produce extra audio. Test brief stalls (<500 ms), longer buffering with retained frame, and resumption. Check ads and video transitions do not leave misleading overlays.
 9. Test private/removed/non-embeddable sources and network failure. Explicit errors show CHANNEL UNAVAILABLE; pending tuning fails by 20 seconds. A retries, B opens the guide. No infinite skip/retry loop. Missing sources can be configured in Settings.

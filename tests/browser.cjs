@@ -20,7 +20,7 @@ async function main() {
   const emit=async (name,data)=>page.evaluate(([n,d])=>window.__active.emit(n,d),[name,data]);
   const count=()=>page.evaluate(()=>window.__calls.length);
   await page.goto('http://127.0.0.1:4173/garage-tv/');await mode('unavailable');
-  assert.equal(await page.locator('.guide-row').count(),5);
+  assert.equal(await page.locator('.guide-row').count(),6);
   await page.keyboard.press('s');
   await page.locator('#channel-playlist').fill('https://example.com/not-youtube');
   await page.locator('#channel-form button[type=submit]').click();
@@ -63,7 +63,7 @@ async function main() {
   await page.evaluate(()=>{__padConnected=true;__padButtons[3]={pressed:true,value:1};});await delay(600);
   assert.equal(await page.locator('#guide').isVisible(),true);before=await count();
   await page.evaluate(()=>{__padButtons[3]={pressed:false,value:0};__padButtons[13]={pressed:true,value:1};});await delay(750);
-  assert.equal(await count(),before);assert.equal(await page.locator('.is-selected').getAttribute('data-channel'),'4');
+  assert.equal(await count(),before);assert.equal(await page.locator('.is-selected').getAttribute('data-channel'),'5');
   await page.evaluate(()=>{__padButtons[13]={pressed:false,value:0};__padButtons[1]={pressed:true,value:1};});await delay(100);
   assert.equal(await page.locator('#guide').isVisible(),false);
   await page.evaluate(()=>{__padButtons[1]={pressed:false,value:0};__padConnected=false;});
@@ -96,8 +96,8 @@ async function main() {
   console.log('PASS: guide focus/ON, no browse retune, timing, stale iframe callbacks, single active player, keyboard/gamepad, settings/CRUD/import/storage, virtual return seeks, responsive geometry.');
   // Visual acceptance captures: synthetic schedules and optional credited reference image exist only here.
   const visual=await browser.newPage({viewport:{width:1280,height:720},timezoneId:'UTC'});
-  await visual.addInitScript(fakeAPI);await visual.addInitScript(()=>{Math.random=()=>0.6;window.__autoPlay=false;});
-  const fixture=JSON.parse(JSON.stringify(defaults));const titles=[[],['Classic NBA Replay','Skate Video Mix'],['Indie Video Mix','Pop Video Mix'],['Rap Video Mix','R&B Video Mix'],['Retro TV Block','Late Night Cartoons']];
+  await visual.addInitScript(fakeAPI);await visual.addInitScript(()=>{Math.random=()=>0.45;window.__autoPlay=false;});
+  const fixture=JSON.parse(JSON.stringify(defaults));const titles=[[],['Classic NBA Replay','Skate Video Mix'],['Indie Video Mix','Pop Video Mix'],['Rap Video Mix','R&B Video Mix'],['Retro TV Block','Late Night Cartoons'],['Off the Air','Next episode']];
   fixture.services[0].name='Live sports source';
   for(const c of fixture.channels)if(c.id)c.schedule={epoch:new Date().toISOString(),durationsVerified:true,shuffle:false,programs:titles[c.id].map((title,i)=>({title,videoId:i?'bHQqvYy5KYo':'M7lc1UVf-VE',duration:3600}))};
   await visual.route('**/data/default-config.json',r=>r.fulfill({json:fixture}));
@@ -113,7 +113,17 @@ async function main() {
   await visual.evaluate(()=>document.querySelector('#clock').textContent='8:42 PM');
   assert.equal(await visual.locator('.is-selected').getAttribute('data-channel'),'1');assert.equal(await visual.locator('.is-tuned').getAttribute('data-channel'),'3');
   await visual.screenshot({path:'test-results/local-station-guide.png'});
-  assert.deepEqual(await visual.locator('.is-selected').boundingBox(),{x:64,y:340,width:1152,height:70});
+  const selectedBox=await visual.locator('.is-selected').boundingBox();
+  assert.ok(Math.abs(selectedBox.y-(270+350/6))<0.1); assert.ok(Math.abs(selectedBox.height-350/6)<0.1);
+  await visual.keyboard.press('End');
+  for(let i=0;i<5;i++)await visual.keyboard.press('ArrowDown');
+  assert.equal(await visual.locator('.is-selected').getAttribute('data-channel'),'5');
+  assert.ok((await visual.locator('.is-selected').boundingBox()).y<620);
+  await visual.keyboard.press('Enter');
+  await visual.waitForFunction(()=>document.querySelector('#overlay-number').textContent==='005');
+  await visual.keyboard.press('ArrowDown');await visual.waitForFunction(()=>document.querySelector('#app').dataset.mode==='directory');
+  await visual.keyboard.press('ArrowUp');await visual.waitForFunction(()=>document.querySelector('#overlay-number').textContent==='005');
+  await visual.evaluate(()=>__active.emit('onStateChange',1));
   await visual.keyboard.press('Escape');await delay(3100);await visual.screenshot({path:'test-results/local-station-playback.png'});
   await visual.evaluate(()=>__active.emit('onStateChange',3));await delay(550);await visual.screenshot({path:'test-results/local-station-buffering.png'});
   await visual.evaluate(()=>__active.emit('onError',100));await visual.screenshot({path:'test-results/local-station-unavailable.png'});
