@@ -2,7 +2,7 @@
 
 Minimal static television application for Microsoft Edge on Xbox One, targeting 1280×720 and supporting 1080p. HTML, CSS and JavaScript; no backend, API keys, paid services or runtime dependencies. All visual styles live in `styles.css` and its CSS variables.
 
-**Publication status:** implementation complete; no live deployment verified. The user has created the public repository https://github.com/WussupLee/garage-tv, but cloud upload was denied by the integration. Intended Pages URL: https://wussuplee.github.io/garage-tv/ (last check: HTTP 404). **Continuing in Codex on PC? Read [CODEX-HANDOFF.md](CODEX-HANDOFF.md) first.**
+**Publication status (2026-10-18):** live at https://wussuplee.github.io/garage-tv/. The free, easy-to-type redirect https://zip1.io/garagetvlee was verified to reach the live app. Source: https://github.com/WussupLee/garage-tv.
 
 ## Run on your PC
 
@@ -21,7 +21,7 @@ To try the local build on Xbox before publishing, run the server on your PC, kee
 
 Channels: 000 LIVE SPORTS, 001 SPORTS TV, 002 INDIE / POP, 003 RAP / R&B and 004 RETRO TV. Additional channels can be added through validated JSON import or `data/default-config.json`.
 
-Discovery of https://www.youtube.com/@NostalgiaTV-f4p/playlists was attempted through direct fetch, a web reader and indexed search. The reader was throttled, direct access was denied and no indexed playlist results were found. **All four YouTube playlist URLs are still needed.** No playlist IDs were invented. Settings accepts pasted public playlist URLs/IDs. Save on the Xbox itself, or export PC settings and commit that JSON as `data/default-config.json` to ship them to all new browsers. An existing local configuration takes precedence; use Import JSON to update it.
+The public https://www.youtube.com/@NostalgiaTV-f4p/playlists page was accessible from the PC on 2026-10-18. Its “Sports” and “Indie / Pop” playlist IDs were verified on that page and added to the deployable defaults for channels 001 and 002. Its “Animation” playlist was left unmatched. **Rap / R&B and Retro TV still need matching public playlists.** Settings accepts pasted public playlist URLs/IDs. Save on the Xbox itself, or export PC settings and commit that JSON as `data/default-config.json` to ship them to all new browsers. An existing local configuration takes precedence; use Import JSON to update it.
 
 The official YouTube IFrame Player API creates a single reusable player. Features include source switching, continuous playlist looping, local position bookmarks, explicit autoplay recovery, missing/blocked-video recovery, mute, loading timeout and retry. Configured startup channels are randomly selected from enabled 001–004; a valid URL cannot guarantee embeddability, so runtime failures show recovery controls. With no configured sources the app honestly shows setup instructions. Diagnostics has a separately labeled official YouTube API demo video for connection testing.
 
@@ -45,32 +45,9 @@ Configuration uses localStorage with validated JSON import/export, optional down
 
 Gamepad polling uses edge detection and a 220 ms action debounce; holding a button does not repeatedly tune. Unknown mappings are diagnostic only. Xbox Edge may reserve inputs; **none of these mappings have been verified on an Xbox**. In LIVE SPORTS, D-pad moves among service links; use bumpers or visible CH buttons to leave. In Settings, D-pad moves controls, and on a selected dropdown it changes options; use the browser's on-screen keyboard for typing. Gamepad-synthesized clicks may not satisfy autoplay's trusted-interaction requirements. Use Edge cursor/native controls or a keyboard when needed. Focus inside a cross-origin YouTube iframe can prevent application shortcuts; Tab or Edge's cursor can return to the app.
 
-## Publish from your PC
+## Deployment
 
-The cloud connection authenticated as WussupLee, but upload failed with HTTP 403 (`Resource not accessible by integration`). The repository now exists with an initial README. Use your PC's own authorized GitHub login; do not copy credentials from this package or paste tokens into chat. Codex on PC can perform the remaining work using CODEX-HANDOFF.md.
-
-1. Clone the existing repository into a new folder using GitHub Desktop or a terminal. Git and an authorized GitHub login are needed for command-line publishing:
-
-```sh
-git clone https://github.com/WussupLee/garage-tv.git garage-tv-publish
-```
-
-2. Copy the extracted package's files into that clone, preserving the clone's `.git` directory. Review the changes, commit and push:
-
-```sh
-cd garage-tv-publish
-git add .
-git commit -m "Build Garage TV Xbox Edge MVP"
-git push origin main
-```
-
-If authentication is needed, use your PC's normal GitHub login flow (for example, `gh auth login` if GitHub CLI is installed). Do not force-push or overwrite unrelated remote work. GitHub Desktop is also suitable for committing/pushing the copied files.
-
-3. Go to repository **Settings → Pages → Build and deployment → Source → GitHub Actions**.
-4. In **Actions → Deploy Garage TV to GitHub Pages**, choose **Run workflow** on main, or push another commit. The included workflow validates defaults, runs the unit tests, creates `dist/`, uploads it and deploys to Pages. Actions must be enabled and the repository's policy must allow Pages deployments. It uses the free public-repository Pages service.
-5. Wait for the deployment to finish, then open the URL shown by the deploy job. Confirm it loads and browser assets return successfully before calling the app live. The expected URL is https://wussuplee.github.io/garage-tv/.
-
-Alternative without Actions: upload `index.html`, `styles.css`, `src/`, `data/` and `.nojekyll` to the repository root, then select **Deploy from a branch → main → /(root)** in Pages. No Node build is required for this static source. With the full project committed, branch deployment also works because all runtime assets are in the root.
+The public repository uses **GitHub Actions** as its Pages source. Each push to `main` runs the six unit tests, builds `dist/`, and deploys it through `.github/workflows/pages.yml`. The deployment completed successfully on 2026-10-18. The live page and its CSS, JavaScript modules, and default configuration all returned HTTP 200. The short link returned one redirect to the Pages URL, which returned HTTP 200. Bookmark https://zip1.io/garagetvlee in Xbox Edge for easier access.
 
 ## Validation and Xbox acceptance
 
@@ -95,7 +72,7 @@ Automated tests cover 720p/1080p layout, source switching, overlay expiry, guide
 - `src/input.js`: keyboard, standard Gamepad polling and focus movement.
 - `src/app.js`: app state, guide, settings and recovery UI.
 - `styles.css`: centralized temporary black-and-white styling.
-- `data/default-config.json`: editable deployment defaults; no fabricated playlist data.
+- `data/default-config.json`: editable deployment defaults with two publicly verified playlist IDs.
 - `scripts/`: static build and local development server.
 - `tests/`: pure unit and controlled browser tests.
 

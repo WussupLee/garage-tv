@@ -3,8 +3,8 @@
   "seed": "garage-tv-v1",
   "channels": [
     { "id": 0, "title": "LIVE SPORTS", "description": "Streaming service directory", "sourceType": "directory", "playlist": "", "enabled": true, "schedule": null },
-    { "id": 1, "title": "SPORTS TV", "description": "Add your public sports playlist in Settings", "sourceType": "youtube", "playlist": "", "enabled": true, "schedule": null },
-    { "id": 2, "title": "INDIE / POP", "description": "Add your public indie / pop playlist in Settings", "sourceType": "youtube", "playlist": "", "enabled": true, "schedule": null },
+    { "id": 1, "title": "SPORTS TV", "description": "NostalgiaTV public Sports playlist", "sourceType": "youtube", "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66auWzsLO8agSNSQqsitEvR4-", "enabled": true, "schedule": null },
+    { "id": 2, "title": "INDIE / POP", "description": "NostalgiaTV public Indie / Pop playlist", "sourceType": "youtube", "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66atCuXs45FwMHbId06vci8Th", "enabled": true, "schedule": null },
     { "id": 3, "title": "RAP / R&B", "description": "Add your public rap / R&B playlist in Settings", "sourceType": "youtube", "playlist": "", "enabled": true, "schedule": null },
     { "id": 4, "title": "RETRO TV", "description": "Add your public retro TV playlist in Settings", "sourceType": "youtube", "playlist": "", "enabled": true, "schedule": null }
   ],

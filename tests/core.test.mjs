@@ -12,7 +12,9 @@ test('deployable defaults contain five channels and the requested same-tab servi
   const config = validateConfig(defaults);
   assert.deepEqual(config.channels.map(c => c.id), [0, 1, 2, 3, 4]);
   assert.equal(config.services[0].url, 'https://ntv.st/matches/kobra');
-  assert.equal(startupChannel(config.channels), null);
+  assert.equal(config.channels[1].playlist, 'PLqlmRlit66auWzsLO8agSNSQqsitEvR4-');
+  assert.equal(config.channels[2].playlist, 'PLqlmRlit66atCuXs45FwMHbId06vci8Th');
+  assert.ok([1, 2].includes(startupChannel(config.channels).id));
 });
 test('playlist parsing accepts public URL forms and rejects unsafe or invalid sources', () => {
   const id = 'PLsyntax_fixture_1234567890';

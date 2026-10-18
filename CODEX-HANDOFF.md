@@ -1,5 +1,7 @@
 # Garage TV — handoff to Codex on PC
 
+**Status update, 2026-10-18:** The local PC upload and GitHub Actions Pages deployment are complete. The site `https://wussuplee.github.io/garage-tv/` and runtime assets returned HTTP 200. The free short link `https://zip1.io/garagetvlee` redirected there and returned HTTP 200. Public Sports and Indie / Pop playlists were found and added to channels 001 and 002; Rap / R&B and Retro TV remain unconfigured. Real Xbox testing remains open. Publishing instructions and 404/403 reports below describe the earlier state.
+
 ## Start here
 
 Continue the existing implementation in this folder. Do not rebuild it from scratch. The user authorized uploading to their public GitHub repository, enabling GitHub Pages, and deploying the site. They also want a free, easy-to-type short link after deployment. Verify the real deployed URL and the short-link redirect before claiming either works. Do not invent a short alias or playlist IDs.

@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { spawn } = require('node:child_process');
-const { mkdir } = require('node:fs/promises');
+const { mkdir, readFile } = require('node:fs/promises');
 const { existsSync } = require('node:fs');
 const { setTimeout: delay } = require('node:timers/promises');
 
@@ -43,6 +43,9 @@ async function main() {
     const page = await browser.newPage({viewport:{width:1280,height:720}});
     const errors=[]; page.on('pageerror',error=>errors.push(error.message));
     await page.addInitScript(fakeAPI);
+    const emptyDefaults = JSON.parse(await readFile('data/default-config.json', 'utf8'));
+    for (const channel of emptyDefaults.channels) if (channel.sourceType === 'youtube') channel.playlist = '';
+    await page.route('**/data/default-config.json', route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(emptyDefaults)}));
     await page.goto('http://127.0.0.1:4173/garage-tv/');
     await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Setup needed'));
     assert.equal(await page.locator('.guide-row').count(),5);
@@ -136,6 +139,7 @@ async function main() {
     // Separate no-Gamepad-API degradation check.
     const unavailable=await browser.newPage({viewport:{width:1280,height:720}});
     await unavailable.addInitScript(()=>Object.defineProperty(navigator,'getGamepads',{value:undefined}));
+    await unavailable.route('**/data/default-config.json', route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(emptyDefaults)}));
     await unavailable.goto('http://127.0.0.1:4173/garage-tv/');
     await unavailable.waitForFunction(()=>document.querySelector('#status').textContent.includes('Setup needed'));
     await unavailable.keyboard.press('d'); await delay(1100);
