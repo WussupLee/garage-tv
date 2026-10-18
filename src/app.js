@@ -2,11 +2,13 @@ import { CONFIG_KEY, BOOKMARK_KEY, clone, validateConfig, startupChannel, config
 import { broadcastAt, orderedPrograms } from './schedule.js';
 import { TelevisionPlayer } from './player.js';
 import { GamepadInput, keyboardInput, moveFocus } from './input.js';
+import { StationPresentation } from './presentation.js';
 
 const $ = id => document.getElementById(id);
 const number = id => String(id).padStart(3, '0');
-let config, tuned = null, selected = null, panel = null, panelReturn = null;
-let overlayTimer, watchdog, loadVersion = 0, scheduledKey = '', degraded = false, demo = false, failureCount = 0;
+let config, tuned = null, selected = null, panel = null;
+let loadVersion = 0, scheduledKey = '', degraded = false, demo = false;
+let lastPresentationMode = 'launch';
 let padInfo = { supported: typeof navigator.getGamepads === 'function', pads: [] };
 let bookmarks = readStorage(BOOKMARK_KEY, {});
 if (!bookmarks || typeof bookmarks !== 'object' || Array.isArray(bookmarks)) bookmarks = {};
@@ -21,46 +23,61 @@ function textElement(tag, text, className) { const e = document.createElement(ta
 function channel() { return config && config.channels.find(c => c.id === tuned); }
 function scheduleNow(c = channel()) { return c && !degraded && !demo ? broadcastAt(c, config.seed) : null; }
 function scheduleKey(now) { return now.cycle + ':' + now.index; }
-function playbackMessage(message, focus = false) {
-  $('playback-text').textContent = message; $('playback-message').hidden = false;
-  if (focus && !panel) $('start-playback').focus();
-}
-function armWatchdog() {
-  clearTimeout(watchdog);
-  const version = loadVersion;
-  watchdog = setTimeout(() => {
-    if (version === loadVersion && (demo || configured(channel())) && player.snapshot().state !== 1) playbackMessage('Playback has not started. Press Start / retry. If needed, select Play inside the YouTube player.', true);
-  }, 11000);
+const presentation = new StationPresentation(renderPresentation);
+function renderPresentation(s = presentation.state) {
+  const c = config && config.channels.find(item => item.id === s.requested);
+  const waiting = s.mode === 'tuning' || s.mode === 'buffering';
+  const failed = s.mode === 'unavailable';
+  const needsInput = s.mode === 'blocked' || s.mode === 'paused';
+  $('app').dataset.mode = s.mode;
+  $('video-cover').hidden = ['playing', 'buffering', 'paused'].includes(s.mode);
+  $('launch').hidden = s.mode !== 'launch' || !!panel;
+  $('channel-overlay').toggleAttribute('hidden', !!panel || s.mode === 'launch' || !(s.osdVisible || s.mode === 'directory'));
+  $('overlay-box').setAttribute('height', waiting ? '184' : '126');
+  $('overlay-number').textContent = c ? number(c.id) : '';
+  fitText($('overlay-title'), c ? c.title : '', 250, 28, 700);
+  $('overlay-status').textContent = waiting ? s.mode.toUpperCase() : '';
+  $('playback-message').toggleAttribute('hidden', !!panel || !(failed || needsInput));
+  $('playback-text').textContent = failed ? 'CHANNEL UNAVAILABLE' : '';
+  $('start-playback').textContent = failed ? 'A RETRY' : 'PRESS A TO START';
+  $('start-playback').setAttribute('y', failed ? '326' : '278');
+  $('start-playback').setAttribute('aria-label', failed ? 'Retry channel' : 'Start playback');
+  $('failure-guide').toggleAttribute('hidden', !failed);
+  $('playback-bug').hidden = !!panel || s.mode !== 'playing' || s.osdVisible;
+  $('directory').hidden = s.mode !== 'directory' || !!panel;
+  if (failed && lastPresentationMode !== 'unavailable') {
+    // A timeout must also prevent a late-ready iframe from starting sound behind the error.
+    player.beginRequest(loadVersion);
+  }
+  lastPresentationMode = s.mode;
+  refreshGuide();
+  if (!panel) status((c ? number(c.id) + ' ' + c.title + '. ' : '') + (failed ? 'Channel unavailable. A retry. B guide. S settings.' : needsInput ? 'Press A to start.' : s.mode));
 }
 const player = new TelevisionPlayer({
-  blocked: () => { clearTimeout(watchdog); playbackMessage('Edge requires your interaction to start sound and video. Press A / Enter on Start.', true); log('YouTube reported autoplay blocked.'); },
-  state: state => {
+  blocked: requestId => { if (requestId !== loadVersion) return; presentation.blocked(requestId); log('YouTube reported autoplay blocked.'); },
+  state: (state, requestId) => {
+    if (requestId !== loadVersion) return;
     if (!channel() || (tuned === 0 && !demo)) return;
     if (state === 1) {
-      clearTimeout(watchdog); failureCount = 0; $('playback-message').hidden = true;
       const now = scheduleNow();
       const snapshot = player.snapshot();
       if (now && snapshot.videoId === now.program.videoId && snapshot.duration > 0 && Math.abs(snapshot.duration - now.program.duration) > 3) {
         degraded = true;
         log('Duration mismatch: scheduled ' + now.program.duration + 's, player reports ' + Math.round(snapshot.duration) + 's. Synchronization suspended for this tune.');
       }
-      status(modeLabel());
-      refreshGuide();
+      presentation.playing(requestId);
     }
+    if (state === 3) presentation.buffering(requestId);
+    if (state === 2) presentation.blocked(requestId, true);
     if (state === 0 && scheduleNow()) loadScheduled(true);
   },
-  error: code => {
+  error: (code, requestId) => {
+    if (requestId !== loadVersion) return;
     if (tuned === 0 && !demo) return;
-    clearTimeout(watchdog);
     const labels = { 2: 'Invalid video parameters', 5: 'HTML5 playback failed', 100: 'Video removed or private', 101: 'Owner blocks embedding', 150: 'Owner blocks embedding', 153: 'YouTube could not verify the playback origin/referrer' };
     const reason = labels[code] || 'YouTube error ' + code;
     log(reason);
-    if ([100, 101, 150].includes(code) && !demo && ++failureCount <= 4) {
-      status(reason + ' · skipping unavailable video (' + failureCount + '/4)');
-      // Bounded recovery: never spin indefinitely through a blocked playlist.
-      const version = loadVersion;
-      setTimeout(() => { if (version === loadVersion) skip(false); }, 900);
-    } else playbackMessage(reason + '. Try another video, check playlist visibility, or retry.', true);
+    presentation.unavailable(requestId);
   }
 });
 
@@ -82,40 +99,28 @@ function remember() {
   try { writeStorage(BOOKMARK_KEY, bookmarks); } catch (error) { log(error.message); }
 }
 
-function showOverlay(c) {
-  clearTimeout(overlayTimer);
-  $('overlay-number').textContent = number(c.id); $('overlay-title').textContent = c.title; $('overlay-description').textContent = c.description;
-  $('channel-overlay').hidden = false;
-  overlayTimer = setTimeout(() => { $('channel-overlay').hidden = true; }, 3500);
-}
-
 async function tune(id) {
   const c = config.channels.find(item => item.id === id && item.enabled);
   if (!c) return;
-  remember(); clearTimeout(watchdog);
+  remember();
   const version = ++loadVersion;
-  tuned = id; selected = id; scheduledKey = ''; degraded = false; demo = false; failureCount = 0;
-  player.stop();
-  $('tuned-label').textContent = number(id) + ' · ' + c.title;
-  $('playback-message').hidden = true; $('directory').hidden = id !== 0;
-  $('stage').hidden = id === 0;
-  $('empty-state').hidden = configured(c) || id === 0;
-  $('empty-message').textContent = 'This channel needs a public YouTube playlist or a verified-duration schedule. Open Settings to add a source.';
-  showOverlay(c); renderDirectory(); refreshGuide(); status(modeLabel()); log('Tuned ' + number(id) + ' ' + c.title);
-  if (id === 0 || !configured(c)) return;
-  status('Loading ' + number(id) + '…'); armWatchdog();
+  tuned = id; selected = id; scheduledKey = ''; degraded = false; demo = false;
+  player.beginRequest(version);
+  presentation.request(version, id);
+  renderDirectory(); log('Requested ' + number(id) + ' ' + c.title);
+  if (id === 0) { presentation.directory(version); return; }
+  if (!configured(c)) { presentation.unavailable(version); return; }
   try {
     await player.ensure();
-    if (version !== loadVersion) return;
+    if (version !== loadVersion || presentation.state.mode === 'unavailable') return;
     if (c.schedule) loadScheduled(true);
     else {
       const mark = bookmarks[id];
       player.playlist(c.playlist, mark && mark.playlist === c.playlist ? mark : {});
     }
-    armWatchdog();
   } catch (error) {
     if (version !== loadVersion) return;
-    clearTimeout(watchdog); log(error.message); playbackMessage(error.message, true);
+    log(error.message); presentation.unavailable(version);
   }
 }
 
@@ -123,12 +128,11 @@ function loadScheduled(force = false) {
   const now = scheduleNow();
   if (!now || !player.ready) return;
   const key = scheduleKey(now);
-  if (force || scheduledKey !== key) { scheduledKey = key; player.video(now.program.videoId, now.offset); armWatchdog(); log('Schedule: ' + now.program.title + ' @ ' + Math.floor(now.offset) + 's'); }
+  if (force || scheduledKey !== key) { scheduledKey = key; player.video(now.program.videoId, now.offset); log('Schedule: ' + now.program.title + ' @ ' + Math.floor(now.offset) + 's'); }
 }
 
-function skip(reset = true) {
+function skip() {
   if (!player.ready || tuned === 0 && !demo) return;
-  if (reset) failureCount = 0;
   const c = channel();
   if (c.schedule && !demo) {
     const programs = orderedPrograms(c, config.seed);
@@ -138,64 +142,87 @@ function skip(reset = true) {
     log('Skipped scheduled video; sync suspended until retune.');
   } else if (demo) { player.start(); }
   else player.next();
-  $('playback-message').hidden = true; armWatchdog(); status(modeLabel());
+  status(modeLabel());
 }
 
 function changeChannel(delta) {
-  const list = config.channels.filter(c => c.enabled);
+  const list = config.channels.filter(c => c.enabled && c.id <= 4);
   const index = list.findIndex(c => c.id === tuned);
   const c = list[(index + delta + list.length) % list.length];
   closePanel(); tune(c.id);
 }
 
 function programInfo(c) {
-  if (!c.enabled) return { now: 'Disabled', next: '—' };
-  if (c.id === 0) return { now: config.services.length + ' streaming service link(s)', next: 'Choose a service' };
+  if (!c.enabled) return { now: 'UNAVAILABLE', next: '-' };
+  if (c.id === 0) return { now: config.services[0]?.name || 'UNAVAILABLE', next: '-' };
   const point = broadcastAt(c, config.seed);
-  if (point && !(c.id === tuned && degraded)) return { now: point.program.title + ' · ' + Math.floor(point.offset / 60) + ' min in', next: point.next.title + ' · in ' + Math.ceil(point.remaining / 60) + ' min' };
-  if (!configured(c)) return { now: 'Source not configured', next: 'Add playlist in Settings' };
-  const snap = c.id === tuned && !demo ? player.snapshot() : null;
-  return { now: snap && snap.title ? snap.title : 'Continuous playlist · duration unavailable', next: 'Next available playlist video · timing unknown' };
+  if (point && !(c.id === tuned && degraded)) return { now: point.program.title, next: point.next.title };
+  const snap = c.id === presentation.state.current && !demo ? player.snapshot() : null;
+  return { now: snap && snap.title ? snap.title : 'UNAVAILABLE', next: '-' };
 }
 
+const measure = document.createElement('canvas').getContext('2d');
+function fitText(node, value, width, size, weight = 400) {
+  measure.font = weight + ' ' + size + 'px "Garage Mono"';
+  let text = value;
+  if (measure.measureText(text).width > width) {
+    while (text && measure.measureText(text + '…').width > width) text = text.slice(0, -1);
+    text += '…';
+  }
+  node.textContent = text;
+}
 function refreshGuide() {
   if (!config) return;
   const rows = $('guide-rows');
-  // Update existing buttons so periodic Now/Next refreshes preserve focus.
-  config.channels.forEach(c => {
+  // One listbox owns focus; only existing text nodes change during metadata refresh.
+  config.channels.filter(c => c.id <= 4).forEach(c => {
     let row = rows.querySelector('[data-channel="' + c.id + '"]');
     if (!row) {
-      row = document.createElement('button'); row.type = 'button'; row.className = 'guide-row'; row.dataset.channel = c.id;
-      row.append(textElement('strong', ''), textElement('span', ''), textElement('span', ''));
-      row.addEventListener('focus', () => { selected = c.id; refreshGuide(); });
-      row.addEventListener('click', () => { closePanel(); tune(c.id); }); rows.append(row);
+      row = document.createElement('div'); row.className = 'guide-row'; row.dataset.channel = c.id; row.id = 'guide-channel-' + c.id; row.setAttribute('role', 'option');
+      row.innerHTML = '<svg viewBox="0 0 1152 70" aria-hidden="true"><text class="on-marker bold" x="18" y="43" font-size="18">ON</text><text data-part="number" class="bold" x="62" y="45" font-size="28"></text><text data-part="station" class="bold" x="154" y="43" font-size="24"></text><text data-part="now" x="476" y="43" font-size="22"></text><text data-part="next" x="832" y="43" font-size="22"></text></svg>';
+      row.addEventListener('click', () => { selected = c.id; confirmGuide(); }); rows.append(row);
     }
     const info = programInfo(c);
-    row.disabled = !c.enabled; row.classList.toggle('is-tuned', c.id === tuned); row.classList.toggle('is-selected', c.id === selected);
-    row.setAttribute('aria-pressed', String(c.id === tuned));
-    row.children[0].textContent = number(c.id) + ' · ' + c.title + (c.id === tuned ? ' · TUNED' : '');
-    row.children[1].textContent = 'NOW  ' + info.now;
-    row.children[2].textContent = 'NEXT  ' + info.next;
+    const current = !demo && c.id === presentation.state.current;
+    row.classList.toggle('is-tuned', current); row.classList.toggle('is-selected', c.id === selected);
+    row.setAttribute('aria-selected', String(c.id === selected)); row.setAttribute('aria-disabled', String(!c.enabled));
+    row.setAttribute('aria-label', number(c.id) + ' ' + c.title + (current ? ', on' : '') + '. Now ' + info.now + '. Next ' + info.next);
+    row.querySelector('[data-part=number]').textContent = number(c.id);
+    fitText(row.querySelector('[data-part=station]'), c.title, 290, 24, 700);
+    fitText(row.querySelector('[data-part=now]'), info.now, 320, 22);
+    fitText(row.querySelector('[data-part=next]'), info.next, 302, 22);
   });
   Array.from(rows.children).forEach(row => { if (!config.channels.some(c => c.id === Number(row.dataset.channel))) row.remove(); });
+  if (selected !== null) rows.setAttribute('aria-activedescendant', 'guide-channel-' + selected);
+}
+
+function confirmGuide() {
+  if (!config.channels.find(c => c.id === selected)?.enabled) return;
+  const id = selected;
+  const alreadyPlaying = presentation.state.current === id && ['playing', 'buffering'].includes(presentation.state.mode);
+  closePanel(); if (!alreadyPlaying) tune(id);
+}
+function moveGuide(delta) {
+  const list = config.channels.filter(c => c.id <= 4);
+  const index = Math.max(0, list.findIndex(c => c.id === selected));
+  selected = list[Math.max(0, Math.min(list.length - 1, index + delta))].id;
+  refreshGuide(); status('Guide. ' + number(selected) + ' ' + list.find(c => c.id === selected).title);
 }
 
 function closePanel() {
   if (!panel) return;
-  $(panel).hidden = true; panel = null; document.body.classList.remove('panel-open');
-  if (panelReturn && panelReturn.getClientRects().length) panelReturn.focus();
+  $(panel).hidden = true; panel = null;
+  renderPresentation(); $('app').focus({ preventScroll: true });
 }
 function openPanel(name) {
   if (panel === name) { closePanel(); return; }
-  const previous = document.activeElement;
-  closePanel(); panelReturn = previous; panel = name;
-  $(name).hidden = false; document.body.classList.add('panel-open');
+  closePanel(); panel = name;
+  $(name).hidden = false;
   if (name === 'guide') {
-    selected = tuned; refreshGuide();
-    const row = $('guide-rows').querySelector('[data-channel="' + tuned + '"]');
-    (row || $(name).querySelector('button')).focus();
-    if (row) row.scrollIntoView({ block: 'nearest' });
-  } else $(name).querySelector('button').focus();
+    selected = presentation.state.current ?? tuned; refreshGuide(); $('guide-rows').focus({ preventScroll: true });
+    status('Guide. ' + number(selected) + ' ' + config.channels.find(c => c.id === selected)?.title);
+  } else { if (name === 'settings') renderChannelSelect(tuned); $(name).querySelector('button').focus(); }
+  renderPresentation();
 }
 
 function renderDirectory() {
@@ -252,53 +279,59 @@ function importConfig(raw) {
 
 function action(command) {
   if (!config) return;
-  if (command === 'back') { panel ? closePanel() : openPanel('guide'); return; }
-  if (command === 'guide' || command === 'settings' || command === 'diagnostics') { openPanel(command); return; }
-  if (command === 'previous' || command === 'next') { changeChannel(command === 'next' ? 1 : -1); return; }
+  if (command === 'back') { if (panel) closePanel(); else if (presentation.state.mode === 'unavailable') openPanel('guide'); return; }
+  if (['guide', 'settings', 'diagnostics', 'controls'].includes(command)) { openPanel(command); return; }
+  if (command === 'previous' || command === 'next') { panel === 'guide' ? moveGuide(command === 'next' ? 1 : -1) : changeChannel(command === 'next' ? 1 : -1); return; }
   if (command === 'mute') { toggleMute(); return; }
   if (command === 'play') { togglePlay(); return; }
   if (command === 'confirm') {
+    if (panel === 'guide') { confirmGuide(); return; }
     const active = document.activeElement;
     if (active && active.matches('button,a,input,select,textarea') && active.getClientRects().length) active.click();
-    else if (!$('playback-message').hidden) $('start-playback').click();
+    else if (['unavailable', 'blocked', 'paused'].includes(presentation.state.mode)) startPlayback();
     else if (tuned === 0) { const first = $('service-links').querySelector('a'); if (first) first.focus(); }
-    else $('start-playback').click();
     return;
   }
   if (['up', 'down', 'left', 'right'].includes(command)) {
     if (panel) {
-      if (panel === 'guide' && (command === 'up' || command === 'down')) moveFocus($('guide-rows'), command === 'down' ? 1 : -1);
+      if (panel === 'guide') { if (command === 'up' || command === 'down') moveGuide(command === 'down' ? 1 : -1); }
       else if (document.activeElement.tagName === 'SELECT') {
         const select = document.activeElement; select.selectedIndex = Math.max(0, Math.min(select.options.length - 1, select.selectedIndex + (command === 'down' || command === 'right' ? 1 : -1))); select.dispatchEvent(new Event('change'));
       } else moveFocus($(panel), command === 'down' || command === 'right' ? 1 : -1);
-    } else if (tuned === 0 || !$('playback-message').hidden || command === 'left' || command === 'right') moveFocus(tuned === 0 ? $('directory') : !$('playback-message').hidden ? $('playback-message') : document.querySelector('footer'), command === 'down' || command === 'right' ? 1 : -1);
-    else changeChannel(command === 'up' ? 1 : -1);
+    } else if (command === 'up' || command === 'down') changeChannel(command === 'down' ? 1 : -1);
+    else if (tuned === 0) moveFocus($('directory'), command === 'right' ? 1 : -1);
   }
 }
 
 function toggleMute() { const muted = player.mute(); $('toggle-mute').textContent = muted ? 'Unmute' : 'Mute'; $('toggle-mute').setAttribute('aria-pressed', String(muted)); }
 function togglePlay() {
-  if (!player.ready) { $('start-playback').click(); return; }
+  if (!player.ready) { startPlayback(); return; }
   if (player.snapshot().state !== 1 && scheduleNow()) loadScheduled(true);
   else player.toggle();
 }
 
 $('channel-down').onclick = () => changeChannel(-1); $('channel-up').onclick = () => changeChannel(1);
 $('toggle-guide').onclick = () => openPanel('guide');
-$('open-settings').onclick = $('empty-settings').onclick = $('edit-services').onclick = () => { renderChannelSelect(tuned); openPanel('settings'); };
+$('open-settings').onclick = $('edit-services').onclick = () => openPanel('settings');
 $('open-diagnostics').onclick = () => openPanel('diagnostics');
+$('playback-bug').onclick = () => openPanel('controls');
+$('guide-tune').onclick = confirmGuide; $('guide-close').onclick = closePanel;
+$('failure-guide').onclick = () => openPanel('guide');
+$('app').addEventListener('contextmenu', event => { event.preventDefault(); openPanel('controls'); });
+$('app').addEventListener('keydown', event => { if (event.key === 'Tab' && !panel && event.target === $('app')) { event.preventDefault(); openPanel('controls'); } });
 document.querySelectorAll('[data-close]').forEach(button => { button.onclick = closePanel; });
 $('toggle-play').onclick = togglePlay; $('toggle-mute').onclick = toggleMute;
 $('skip-video').onclick = () => skip();
-$('start-playback').onclick = () => {
-  if (!channel() || !configured(channel()) && !demo) { openPanel('settings'); return; }
+function startPlayback() {
+  if (!channel()) return;
+  if (presentation.state.mode === 'unavailable') { if (demo) $('test-youtube').click(); else tune(tuned); return; }
+  if (!configured(channel()) && !demo) { tune(tuned); return; }
   if (player.ready && player.snapshot().videoId) {
-    failureCount = 0;
     if (scheduleNow()) loadScheduled(true); else player.start();
-    armWatchdog();
   } else if (demo) $('test-youtube').click();
   else tune(tuned);
-};
+}
+$('start-playback').onclick = startPlayback;
 $('channel-select').onchange = loadChannelForm;
 $('channel-form').onsubmit = event => {
   event.preventDefault();
@@ -333,13 +366,12 @@ $('import-file').onchange = () => {
   const reader = new FileReader(); reader.onload = () => importConfig(reader.result); reader.onerror = () => notice('Could not read the file.'); reader.readAsText(file);
 };
 $('test-youtube').onclick = async () => {
-  remember(); clearTimeout(watchdog); const version = ++loadVersion;
-  demo = true; degraded = false; failureCount = 0; scheduledKey = '';
-  $('stage').hidden = false; $('empty-state').hidden = true; $('directory').hidden = true; $('playback-message').hidden = true;
-  $('tuned-label').textContent = 'YouTube diagnostic · official demo';
-  status(modeLabel());
-  try { await player.ensure(); if (version !== loadVersion) return; player.video('M7lc1UVf-VE'); armWatchdog(); }
-  catch (error) { if (version === loadVersion) playbackMessage(error.message); }
+  remember(); const version = ++loadVersion;
+  demo = true; degraded = false; scheduledKey = '';
+  player.beginRequest(version); presentation.request(version, tuned); closePanel();
+  log('YouTube diagnostic video; not channel programming.');
+  try { await player.ensure(); if (version !== loadVersion || presentation.state.mode === 'unavailable') return; player.video('M7lc1UVf-VE'); }
+  catch (error) { if (version === loadVersion) { log(error.message); presentation.unavailable(version); } }
 };
 
 window.addEventListener('error', event => { log('Browser error: ' + event.message); status('A browser error occurred. See Diagnostics and reload if controls stop responding.'); });
@@ -349,8 +381,10 @@ window.addEventListener('pageshow', event => { if (event.persisted && tuned !== 
 document.addEventListener('visibilitychange', () => { if (document.hidden) remember(); else if (scheduleNow() && player.snapshot().state === 1) loadScheduled(true); });
 keyboardInput(action);
 new GamepadInput(action, info => { padInfo = info; });
+function updateClock() { $('clock').textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
+updateClock();
 setInterval(() => {
-  $('clock').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  updateClock();
   if (scheduleNow() && player.ready && player.snapshot().state === 1) loadScheduled();
   if (panel === 'diagnostics') {
     $('diagnostic-output').textContent = JSON.stringify({ userAgent: navigator.userAgent, viewport: [innerWidth, innerHeight], focused: document.hasFocus(), storage: 'Configuration stored in this browser; export to transfer', tuned, mode: modeLabel(), player: player.snapshot(), gamepad: padInfo }, null, 2);
@@ -359,6 +393,7 @@ setInterval(() => {
 setInterval(() => { refreshGuide(); remember(); }, 15000);
 
 async function boot() {
+  const launchTimer = setTimeout(() => { if (presentation.state.mode === 'launch') { presentation.state.mode = 'tuning'; presentation.state.osdVisible = true; presentation.emit(); } }, 600);
   try {
     const response = await fetch('./data/default-config.json', { cache: 'no-cache' });
     if (!response.ok) throw new Error('Default configuration could not load (' + response.status + ').');
@@ -369,11 +404,16 @@ async function boot() {
     renderChannelSelect(1); renderDirectory(); renderServiceEditor(); refreshGuide();
     const initial = startupChannel(config.channels);
     await tune(initial ? initial.id : (config.channels.find(c => c.id >= 1 && c.id <= 4 && c.enabled) || config.channels.find(c => c.enabled)).id);
-    if (!initial) {
-      $('empty-message').textContent = 'No configured YouTube channels yet. Paste your public playlists in Settings. LIVE SPORTS is available in the guide. Diagnostics includes a YouTube playback test.';
-      status('Setup needed · no playable channel source configured · G: guide · S: settings');
-      $('empty-settings').focus();
-    }
-  } catch (error) { $('empty-message').textContent = error.message + ' Reload the page to retry.'; $('empty-settings').hidden = true; log(error.message); }
+    if (!initial) log('No configured YouTube channels. Use S / Settings to add a source.');
+  } catch (error) { log(error.message); presentation.unavailable(loadVersion); }
+  finally { clearTimeout(launchTimer); }
 }
+function fitStage() {
+  const scale = Math.min(innerWidth / 1280, innerHeight / 720);
+  $('app').style.transform = 'scale(' + scale + ')';
+  $('app').style.left = (innerWidth - 1280 * scale) / 2 + 'px';
+  $('app').style.top = (innerHeight - 720 * scale) / 2 + 'px';
+}
+addEventListener('resize', fitStage); fitStage(); $('app').focus({ preventScroll: true });
+document.fonts.ready.then(() => { renderPresentation(); refreshGuide(); });
 boot();

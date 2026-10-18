@@ -1,0 +1,104 @@
+{
+  "version": "1.0",
+  "selectedDirection": "B - Local Station",
+  "canvas": {
+    "width": 1280,
+    "height": 720
+  },
+  "safeArea": {
+    "left": 64,
+    "right": 64,
+    "top": 54,
+    "bottom": 54
+  },
+  "colors": {
+    "black": "#000000",
+    "white": "#ffffff",
+    "divider": "#777777"
+  },
+  "font": {
+    "family": "Garage Mono",
+    "sourceFamily": "DejaVu Sans Mono",
+    "regular": 400,
+    "bold": 700
+  },
+  "sizes": {
+    "channelNumber": 48,
+    "stationTitle": 28,
+    "guideTitle": 30,
+    "guideStation": 24,
+    "guideProgram": 22,
+    "guideTime": 26,
+    "status": 20,
+    "error": 28
+  },
+  "osd": {
+    "x": 64,
+    "y": 54,
+    "width": 286,
+    "height": 126,
+    "statusHeight": 184,
+    "number": {
+      "x": 82,
+      "baseline": 111
+    },
+    "station": {
+      "x": 82,
+      "baseline": 159
+    },
+    "status": {
+      "x": 82,
+      "baseline": 215
+    }
+  },
+  "guide": {
+    "header": [
+      64,
+      54,
+      1152,
+      88
+    ],
+    "panel": [
+      64,
+      226,
+      1152,
+      440
+    ],
+    "firstRowY": 270,
+    "rowHeight": 70,
+    "columns": {
+      "current": 82,
+      "number": 126,
+      "station": 218,
+      "now": 540,
+      "next": 896
+    },
+    "defaultFocus": "currentChannel"
+  },
+  "bug": {
+    "panel": [
+      1112,
+      600,
+      104,
+      66
+    ],
+    "logo": [
+      1124,
+      608,
+      80,
+      49.87
+    ]
+  },
+  "motionMs": {
+    "inputAcknowledgment": 0,
+    "osdHoldAfterPlaying": 3000,
+    "guideOpen": 0,
+    "guideClose": 0,
+    "focus": 0,
+    "bufferingDebounce": 500,
+    "tuningTimeout": 20000,
+    "launchMaxBrandHold": 600
+  },
+  "exampleProgramsAreFixtures": true,
+  "xboxHardwareTested": false
+}

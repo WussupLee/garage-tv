@@ -12,24 +12,42 @@
   <script type="module" src="./src/app.js"></script>
 </head>
 <body>
-  <header class="topbar"><span>GARAGE TV <small>MVP</small></span><span id="tuned-label">Starting…</span><span id="clock"></span></header>
-  <main id="app">
+  <main id="app" tabindex="0" aria-label="Garage TV. G or Y opens guide. S opens settings. C or Menu opens controls.">
     <section id="stage" class="stage" aria-label="Television player">
       <div id="player"></div>
-      <div id="empty-state" class="empty-state"><h1>Garage TV</h1><p id="empty-message">Loading configuration…</p><button id="empty-settings" type="button">Open Settings</button></div>
     </section>
-    <aside id="channel-overlay" class="channel-overlay" aria-live="polite" hidden><strong id="overlay-number"></strong><div id="overlay-title"></div><small id="overlay-description"></small></aside>
-    <section id="playback-message" class="playback-message" aria-live="polite" hidden>
-      <p id="playback-text"></p><button id="start-playback" type="button">Start / retry playback — A or Enter</button><button id="skip-video" type="button">Skip unavailable video</button>
-    </section>
+    <div id="video-cover"></div>
+    <div id="launch"><img src="./assets/garage-tv-primary-white.svg" width="344" height="114" alt="Garage TV"></div>
+    <svg id="channel-overlay" class="artwork" viewBox="0 0 1280 720" aria-hidden="true" hidden>
+      <rect id="overlay-box" x="64" y="54" width="286" height="126" fill="#000"/>
+      <text id="overlay-number" x="82" y="111" font-size="48" class="bold"></text>
+      <text id="overlay-title" x="82" y="159" font-size="28" class="bold"></text>
+      <text id="overlay-status" x="82" y="215" font-size="20"></text>
+    </svg>
+    <svg id="playback-message" class="artwork" viewBox="0 0 1280 720" hidden>
+      <text id="playback-text" x="82" y="278" font-size="28" class="bold">CHANNEL UNAVAILABLE</text>
+      <text id="start-playback" x="82" y="326" font-size="22" role="button" aria-label="Retry playback">A RETRY</text>
+      <text id="failure-guide" x="228" y="326" font-size="22" role="button" aria-label="Open guide">B GUIDE</text>
+    </svg>
+    <button id="playback-bug" aria-label="Open television controls" hidden><img src="./assets/garage-tv-bug-white.svg" width="80" height="49.87" alt="Garage TV"></button>
     <section id="directory" class="directory" aria-label="Live Sports directory" hidden>
       <h1>000 · LIVE SPORTS</h1><p>Choose a service. It opens in this tab. Use Edge’s Back command to return to Garage TV.</p>
       <p class="muted">Garage TV opens no pop-ups. External sites control their own ads and pop-ups; they cannot be blocked by Garage TV.</p>
       <div id="service-links" class="service-links"></div><button id="edit-services" type="button">Edit service links</button>
     </section>
-    <section id="guide" class="panel guide" role="dialog" aria-modal="false" aria-labelledby="guide-title" hidden>
-      <div class="panel-heading"><h1 id="guide-title">Channel guide</h1><button type="button" data-close>Close · B / Esc</button></div>
-      <p class="muted">↑ / ↓ Select · A / Enter Tune · Outlined row is focused</p><div id="guide-rows" class="guide-rows"></div>
+    <section id="guide" class="guide" aria-labelledby="guide-title" hidden>
+      <svg class="artwork guide-art" viewBox="0 0 1280 720">
+        <rect x="64" y="54" width="1152" height="88" fill="#000"/>
+        <image href="./assets/garage-tv-primary-white.svg" x="84" y="66" width="176" height="58.33"/>
+        <text id="guide-title" x="324" y="110" font-size="30" class="bold">CHANNEL GUIDE</text>
+        <text id="clock" x="1028" y="108" font-size="26"></text>
+        <rect x="64" y="226" width="1152" height="440" fill="#000"/>
+        <g font-size="22"><text x="126" y="256">CH</text><text x="218" y="256">STATION</text><text x="540" y="256">NOW</text><text x="896" y="256">NEXT</text></g>
+        <path d="M82 269H1198 M82 624H1198" stroke="#777" stroke-width="1"/>
+        <text id="guide-tune" x="82" y="652" font-size="22" role="button" aria-label="Tune focused channel">A TUNE</text>
+        <text id="guide-close" x="214" y="652" font-size="22" role="button" aria-label="Close guide">B CLOSE</text>
+      </svg>
+      <div id="guide-rows" class="guide-rows" role="listbox" tabindex="0" aria-label="Channels" aria-activedescendant="guide-channel-1"></div>
     </section>
     <section id="settings" class="panel settings" role="dialog" aria-modal="false" aria-labelledby="settings-title" hidden>
       <div class="panel-heading"><h1 id="settings-title">Settings</h1><button type="button" data-close>Close · B / Esc</button></div>
@@ -58,7 +76,7 @@
         <label>Configuration JSON<textarea id="config-json" rows="5" spellcheck="false"></textarea></label><button id="import-config" type="button">Import JSON</button>
         <label>Or choose a JSON file<input id="import-file" type="file" accept=".json,application/json"></label>
       </section>
-      <section><h2>Controls</h2><p>↑ / ↓ change channels. G or B opens the guide. Enter confirms. Esc closes. S opens Settings. D opens Diagnostics. M toggles mute. Space plays/pauses. [ / ] changes channels. Tab moves focus.</p><p>On Xbox: standard mapping requests D-pad, A, B, LB and RB. Use Diagnostics to verify what Edge receives. Gamepad input is unavailable while focus is inside a YouTube iframe; press Tab or use Edge’s cursor to return to the app controls.</p></section>
+      <section><h2>Controls</h2><p>↑ / ↓ surf channels or move guide focus. G or Y opens the guide. Enter / A confirms. Esc / B closes the guide or opens it from failure. S opens Settings. D opens Diagnostics. C / Menu opens controls. M toggles mute. Space plays/pauses. [ / ] changes channels.</p><p>Xbox mapping requires hardware verification. Directional holds repeat after 350 ms, then every 160 ms. A/B/Y are edge-triggered. Edge may reserve B or keep input inside the YouTube iframe; use Tab or Edge’s cursor to return focus to Garage TV.</p></section>
       <p id="settings-notice" class="notice" role="status"></p>
     </section>
     <section id="diagnostics" class="panel diagnostics" role="dialog" aria-modal="false" aria-labelledby="diagnostics-title" hidden>
@@ -67,11 +85,11 @@
       <pre id="diagnostic-output"></pre><button id="test-youtube" type="button">Test YouTube with official API demo video</button>
       <p class="muted">The test uses Google’s documented sample video, not your channel programming. Tune a channel to leave the test.</p><h2>Recent events</h2><pre id="event-log"></pre>
     </section>
-  </main>
-  <footer class="controls" aria-label="Television controls">
-    <button id="channel-down" type="button">CH −</button><button id="channel-up" type="button">CH +</button><button id="toggle-guide" type="button">Guide · G / B</button><button id="toggle-play" type="button">Play / Pause</button><button id="toggle-mute" type="button">Mute</button><button id="open-settings" type="button">Settings</button><button id="open-diagnostics" type="button">Diagnostics</button>
+  <footer id="controls" class="panel controls" aria-label="Television controls" hidden>
+    <button id="channel-down" type="button">CH −</button><button id="channel-up" type="button">CH +</button><button id="toggle-guide" type="button">Guide</button><button id="toggle-play" type="button">Play / Pause</button><button id="toggle-mute" type="button">Mute</button><button id="skip-video" type="button">Next video</button><button id="open-settings" type="button">Settings</button><button id="open-diagnostics" type="button">Diagnostics</button><button type="button" data-close>Close</button>
   </footer>
-  <div id="status" class="status" role="status"></div>
+  </main>
+  <div id="status" class="sr-only" role="status" aria-live="polite"></div>
   <noscript>Garage TV needs JavaScript. Enable it in Edge settings and reload this page.</noscript>
 </body>
 </html>
