@@ -9,6 +9,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 .stage, #video-cover, .artwork, .guide { position: absolute; inset: 0; width: 1280px; height: 720px; }
 .stage { z-index: 0; background: #000; }
 #player { display: block; width: 100%; height: 100%; border: 0; }
+#native-video { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; object-fit: contain; }
 #video-cover { z-index: 1; background: #000; pointer-events: none; }
 .artwork { display: block; pointer-events: none; }
 .artwork text, .guide-row text { font-family: var(--font); fill: currentColor; font-weight: 400; }
@@ -41,6 +42,7 @@ p { line-height: 1.45; margin: 12px 0 20px; }
 .controls { top: auto; bottom: 54px; height: auto; display: flex; flex-wrap: wrap; gap: 12px; }
 .directory { position: absolute; inset: 0; width: 1280px; height: 720px; z-index: 2; overflow: hidden; background: #000; }
 #live-sports-frame { display: block; width: 1280px; height: 720px; border: 0; background: #000; }
+#external-note { position: absolute; left: 82px; top: 245px; width: 900px; padding: 0; margin: 0; background: #000; font-size: 22px; }
 .live-sports-actions { position: absolute; left: 64px; right: 64px; bottom: 54px; min-height: 58px; display: flex; align-items: center; gap: 18px; padding: 5px 8px; background: #000; }
 .service-links { display: flex; flex: 1; align-items: center; gap: 18px; overflow: hidden; }
 .service-link { display: block; flex: 0 1 auto; color: #fff; padding: 10px 8px; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -52,6 +54,9 @@ input[type=checkbox] { width: 26px; height: 26px; vertical-align: middle; margin
 form, .settings section { border-bottom: 1px solid #777; padding-bottom: 20px; }
 .service-edit-row { padding: 12px 0; overflow-wrap: anywhere; }
 .service-edit-row button { margin: 8px 8px 0 0; }
+.channel-manage { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.compatibility-row { border-top: 1px solid #777; padding: 12px 0; font-size: 18px; overflow-wrap: anywhere; }
+.compatibility-row button { margin-top: 8px; }
 .notice { position: sticky; bottom: 0; background: #000; padding: 10px; border: 1px solid #fff; }
 .notice:empty { display: none; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 18px; line-height: 1.5; }

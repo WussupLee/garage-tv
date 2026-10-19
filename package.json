@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node tests/browser.cjs",
+    "test:browser": "node tests/browser-multisource.cjs",
     "serve": "node scripts/serve.mjs"
   },
   "devDependencies": { "playwright": "1.62.1" }

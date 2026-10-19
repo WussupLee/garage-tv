@@ -1,88 +1,62 @@
-# Garage TV — Xbox One MVP
+# Garage TV
 
-Minimal static television application for Microsoft Edge on Xbox One, targeting 1280×720 and supporting 1080p. HTML, CSS and JavaScript; no backend, API keys, paid services or runtime dependencies. The approved B — Local Station design uses local SVG identity assets, DejaVu Sans Mono fonts, and a uniformly scaled 1280×720 stage.
+Garage TV is a static television interface for Microsoft Edge on Xbox One. It keeps the approved Local Station black-and-white presentation and a 1280 × 720 stage. The project is published through GitHub Pages at https://wussuplee.github.io/garage-tv/; the short link is https://zip1.io/garagetvlee.
 
-**Publication status (2026-10-18):** live at https://wussuplee.github.io/garage-tv/. The free, easy-to-type redirect https://zip1.io/garagetvlee was verified to reach the live app. Source: https://github.com/WussupLee/garage-tv.
+## Current channels
 
-## Run on your PC
+| Channel | Source | Status |
+| --- | --- | --- |
+| 000 LIVE SPORTS | Saved external destinations | Configure your own HTTPS links |
+| 001 SPORTS CLASSICS | YouTube playlist | Desktop playlist integration; Xbox untested |
+| 002 INDIE / POP | YouTube playlist | Desktop playlist integration; Xbox untested |
+| 003 RAP / R&B | YouTube playlist | Desktop playlist integration; Xbox untested |
+| 004 RETRO TV | 2000s Retro TV website; Nostalgia playlist alternate | External link; alternate playlist |
+| 005 90s TV | 1990s Retro TV website | External link |
+| 006 VEVO 2K | Pluto TV page | External link; Xbox playback untested |
+| 007 MUSIC TV | XITE website | External link; Xbox player unverified |
+| 008 LATE NIGHT | Adult Swim Off the Air; YouTube alternate | External link; alternate playlist |
+| 009 INDIE ARCHIVE | altmusictv.com | External archive |
+| 010 GARAGE RADIO | SomaFM listening pages | External links; see provider terms |
+| 011 PUBLIC TV | User-configured HLS | Empty until a suitable authorized stream is verified |
 
-Install Node.js LTS from https://nodejs.org/ if needed. Unzip the package and double-click **Start-Garage-TV.cmd** on Windows. Open http://localhost:4173/garage-tv/ in Edge and keep the command window running. On macOS/Linux or in a terminal:
+External links open in the same tab. Edge Back returns to Garage TV. They do not become embeddable streams merely because the landing page loads. Garage TV cannot control provider ads, playback, or controller focus after navigation.
 
-```sh
-npm run build
-npm run serve
-```
+The YouTube playlists and snapshot entries from the previous release remain available. YouTube controls advertising. The app neither bypasses ads nor restarts playback when opening the guide. Verified-duration schedules, looping, bookmarks, retry, and the single YouTube player architecture remain. The formerly bundled live-sports links are not deployed by default; saved links from older browser settings are preserved.
 
-These commands need no `npm install`. Use an HTTP server rather than double-clicking index.html: modules, configuration fetch and YouTube's origin/referrer checks need an HTTP origin. The source can also be served directly using `node scripts/serve.mjs .`.
+SomaFM publishes direct radio URLs, but its terms prohibit third-party embedding without prior permission. The default station therefore links to its official listening pages. Native audio is available for user-provided streams whose terms allow this use. PUBLIC TV remains a placeholder because no IPTV candidate has been verified for authorization, CORS, codec, and live playback.
 
-To try the local build on Xbox before publishing, run the server on your PC, keep both devices on the same home network, and open `http://YOUR_PC_LAN_IP:4173/garage-tv/` in Xbox Edge. Allow port 4173 on your private network if the OS firewall asks. The included server binds to your network for this test and serves only its selected static folder; stop it when done. GitHub Pages is preferred for long-term use and supplies HTTPS.
+## Architecture
 
-## Sources and current functionality
+Default channels live in data/default-config.json. Each channel has a number, order, title, description, enabled flag, multiple sources, and an active source. Supported types are youtube_playlist, hls_stream, audio_stream, external_site, and local_media. See docs/MULTISOURCE.md for the schema and verification matrix.
 
-Channels: 000 LIVE SPORTS, 001 SPORTS TV, 002 INDIE / POP, 003 RAP / R&B, 004 RETRO TV (Nostalgia), and 005 OFF THE AIR. All six guide rows fit inside the original safe area with unchanged type sizes.
+src/player.js owns the single YouTube IFrame player. src/native-media.js reuses one video and one audio element, chooses native HLS when available, and loads HLS.js only when necessary. src/external-site.js provides same-tab destinations. src/local-media.js keeps selected files in memory for the current session. src/presentation.js handles request-scoped tuning, buffering, failures, and the three-second channel label. New channel requests stop prior media and invalidate stale callbacks. There is no backend or proxy.
 
-The user supplied all five YouTube playlists directly. See [the playlist assignments](docs/PLAYLISTS.md). Existing five-channel saved settings gain 005 automatically; empty sources for 003/004 are filled from these defaults. Custom playlists, schedules, enabled states, and service links are preserved. Once upgraded, deliberately clearing a source remains supported. Settings accepts replacement public playlist URLs/IDs. PC and Xbox storage remain separate.
-
-The official YouTube IFrame Player API maintains one active player, replacing the iframe on channel requests to isolate stale callbacks. The four NostalgiaTV playlist feeds returned embed errors in real desktop testing, so the app plays verified public video entries captured from those user-supplied lists; it advances and loops through those entries. Off the Air uses its working playlist feed. See [live playback validation](docs/LIVE-PLAYBACK-VALIDATION.md). Features include source switching, continuous playlist looping, local position bookmarks, explicit autoplay recovery, missing/blocked-video recovery, mute, loading timeout and retry. Configured startup channels are randomly selected from enabled 001–005; a valid URL cannot guarantee every future playlist item stays embeddable, so runtime failures show recovery controls. Missing sources show CHANNEL UNAVAILABLE; use S or the controls menu to configure them. Diagnostics has a separately labeled official YouTube API demo video for connection testing.
-
-The guide keeps full-size video and audio running behind opaque black panels. Its white row shows focus; ON marks the channel actually playing. Browsing does not retune until confirmation. NOW/NEXT uses actual metadata or verified schedules; unknown values are UNAVAILABLE / -. Unscheduled playlists explicitly have unknown next-video timing and do not advance while away. Verified-duration manifests enable deterministic virtual broadcasts with timeline seeks and stable seeded order. Read [docs/SCHEDULES.md](docs/SCHEDULES.md). Real YouTube/Xbox timing remains experimental until tested with actual content.
-
-LIVE SPORTS embeds https://zlive.st/ while channel 000 is tuned. The iframe is unloaded immediately when another channel is requested so an external stream cannot continue behind Garage TV. OPEN ZLIVE.ST provides a same-tab fallback; use Edge Back to return. The earlier Kobra link remains available. Add/edit/remove names and HTTPS URLs in Settings. External sites control their own playback and navigation.
-
-Configuration uses localStorage with validated JSON import/export, optional download/file import, deployable defaults and readable storage errors. It is local to each device/browser, with no account sync. Rendering uses text nodes for user content and rejects unsafe link schemes. Do not store secrets in this public app.
+Settings can add, remove, rename, reorder, enable, and disable channels; edit or select sources; choose local files; and import/export JSON. Settings are stored in localStorage under garage-tv.config.v2, separately in each browser. Older v1 settings migrate on load. Source URLs require HTTPS; HLS entries require an m3u8 URL. The diagnostics panel shows each channel’s source, type, browser capability, observed startup time, interaction requirement, and status. A desktop result is never an Xbox compatibility claim.
 
 ## Controls
 
-| Action | Keyboard | Proposed standard gamepad input |
+| Action | Keyboard | Proposed Xbox mapping |
 | --- | --- | --- |
-| Previous / next channel | ↑ / ↓ or [ / ] | D-pad ↑ / ↓, LB / RB |
-| Toggle guide | G | Y |
-| Move guide focus | ↑ / ↓ | D-pad ↑ / ↓ |
-| Confirm / retry / start | Enter | A |
-| Close panel; open guide from failure | Escape or B | B |
-| Controls menu | C; click playback bug | Menu; click playback bug |
-| Fullscreen | F; FULL SCREEN in controls or LIVE SPORTS | On-screen button via Edge cursor |
-| Settings / diagnostics | S / D | Controls menu |
-| Mute / playback | M / Space | Controls menu |
+| Surf channels | Up/Down or [ / ] | D-pad Up/Down or bumpers |
+| Guide | G | Y or B |
+| Confirm / retry | Enter | A |
+| Close guide | Esc | B |
+| Settings | S | Menu |
+| Fullscreen | F or on-screen button | On-screen button |
+| Diagnostics | D | Settings panel |
+| Mute / play | M / Space | Controls panel |
 
-Directions repeat after 350 ms, then every 160 ms. A/B/Y/Menu and bumpers are edge-triggered. Guide focus stops at its first/last row; channel surfing wraps. Unknown mappings are diagnostic only. Xbox Edge may reserve inputs; **these mappings still need physical Xbox testing**. In LIVE SPORTS, left/right moves among service links and the FULL SCREEN button. In Settings, D-pad moves controls or dropdown options. Keyboard shortcuts preserve text entry. Gamepad-synthesized actions may not satisfy autoplay's trusted-interaction requirements: use Edge cursor/native controls or a keyboard if needed. Focus inside a cross-origin player can prevent application shortcuts; use the visible LIVE SPORTS button or Edge's cursor to return to the app.
+Edge may reserve controller buttons. The physical Xbox checklist is in docs/MULTISOURCE.md. Guide focus is separate from the ON marker; moving focus never tunes. External channels show OPEN PROVIDER and no invented program schedule.
 
-## Local Station presentation
+## Run and verify
 
-Channel requests immediately show TUNING on black. Matching YouTube PLAYING uncovers video and starts the 3-second identification hold. Buffering appears after 500 ms of continuous stalling, retaining the player frame; resuming starts a fresh hold. Failures and a 20-second tune timeout show A RETRY / B GUIDE. Autoplay blocking requires an explicit start. Guide open/close does not reset timers. All transitions are hard cuts, including reduced-motion mode.
+Use a local HTTP server; opening index.html directly does not provide the origin needed by modules and YouTube.
 
-Supplied identity paths are unchanged. The historical photograph is absent from production; optional visual tests use it only as a credited fixture. See [the supplied design contract](docs/LOCAL-STATION-DESIGN.md) and [integration validation](docs/LOCAL-STATION-VALIDATION.md).
+1. Run npm run build and npm run serve with Node.js.
+2. Open http://localhost:4173/garage-tv/ in Edge.
+3. Run npm test for unit checks.
+4. Install the optional Playwright development dependency and run npm run test:browser for controlled desktop Edge checks.
 
-## Deployment
+The GitHub Actions workflow builds dist/ and deploys it to Pages on pushes to main. The browser suite uses a synthetic audio fixture and mocked YouTube events; it does not prove live provider playback. Screenshots are written to test-results/.
 
-The public repository uses **GitHub Actions** as its Pages source. Each push to `main` runs the unit tests, builds `dist/`, and deploys it through `.github/workflows/pages.yml`. The deployment completed successfully on 2026-10-18. The live page and its CSS, JavaScript modules, and default configuration all returned HTTP 200. The short link returned one redirect to the Pages URL, which returned HTTP 200. Bookmark https://zip1.io/garagetvlee in Xbox Edge for easier access.
-
-## Validation and Xbox acceptance
-
-```sh
-npm test
-npm run build
-# Browser suite only: install development dependency and Chromium first.
-npm install
-npx playwright install chromium
-npm run test:browser
-```
-
-The browser runner uses Playwright's installed Chromium by default. To use another installation, set `CHROMIUM_PATH` to your browser's executable path. CI deployment runs dependency-free unit/build checks; the controlled browser suite is a separate developer check. Browser screenshots and results are generated under ignored `test-results/`.
-
-Automated tests cover 720p/1080p layout, source switching, overlay expiry, guide, settings persistence, invalid URLs/JSON, service editing, absent Gamepad API, simulated standard gamepad repeat/edge behavior, autoplay/failure events and schedule seek commands. YouTube and gamepad inputs are mocked in that browser suite. This does not establish real YouTube playback, network availability, embed permissions, or Xbox compatibility. See [docs/XBOX-TESTING.md](docs/XBOX-TESTING.md) for the dedicated physical-console checklist.
-
-## Structure
-
-- `src/config.js`: validation, storage helpers, startup selection.
-- `src/schedule.js`: pure deterministic schedule calculation.
-- `src/player.js`: official YouTube API adapter, one player.
-- `src/input.js`: keyboard, standard Gamepad polling and focus movement.
-- `src/app.js`: app state, guide, settings and recovery UI.
-- `src/presentation.js`: request-scoped presentation timers and player-event state.
-- `styles.css`: Local Station geometry and monochrome styling.
-- `data/default-config.json`: editable deployment defaults with five user-supplied playlist IDs.
-- `scripts/`: static build and local development server.
-- `tests/`: pure unit and controlled browser tests.
-
-The app uses modern ES modules and browser APIs, targeting the Chromium-based Xbox Edge. Old pre-Chromium Xbox browsers are unsupported. It makes no analytics, font or thumbnail requests. Outside playback it fetches one same-origin defaults file; YouTube is loaded only when a source or diagnostic video is requested. A future design can replace CSS variables/classes and static markup while retaining configuration, scheduling, input and player modules.
+Visual assets and dimensions follow docs/LOCAL-STATION-DESIGN.md. The historical reference photograph is not production content.

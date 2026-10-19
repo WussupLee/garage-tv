@@ -1,73 +1,303 @@
 {
-  "version": 1,
-  "migrations": ["zlive-embed-v1"],
-  "seed": "garage-tv-v1",
+  "version": 2,
+  "seed": "garage-tv-v2",
   "channels": [
     {
       "id": 0,
+      "order": 0,
       "title": "LIVE SPORTS",
-      "description": "Streaming service directory",
-      "sourceType": "directory",
-      "playlist": "",
+      "description": "Choose a saved external sports destination.",
       "enabled": true,
-      "schedule": null
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "Saved destinations",
+          "url": "",
+          "schedule": null,
+          "enabled": true,
+          "verification": "untested",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
     },
     {
       "id": 1,
-      "title": "SPORTS TV",
-      "description": "NostalgiaTV public Sports playlist",
-      "sourceType": "youtube",
-      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66auWzsLO8agSNSQqsitEvR4-",
+      "order": 1,
+      "title": "SPORTS CLASSICS",
+      "description": "NostalgiaTV sports playlist.",
       "enabled": true,
-      "schedule": null
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "youtube_playlist",
+          "name": "Sports playlist",
+          "url": "PLqlmRlit66auWzsLO8agSNSQqsitEvR4-",
+          "schedule": null,
+          "enabled": true,
+          "verification": "desktop_playing",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
     },
     {
       "id": 2,
+      "order": 2,
       "title": "INDIE / POP",
-      "description": "NostalgiaTV public Indie / Pop playlist",
-      "sourceType": "youtube",
-      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66atCuXs45FwMHbId06vci8Th",
+      "description": "NostalgiaTV indie and pop playlist.",
       "enabled": true,
-      "schedule": null
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "youtube_playlist",
+          "name": "Indie / Pop playlist",
+          "url": "PLqlmRlit66atCuXs45FwMHbId06vci8Th",
+          "schedule": null,
+          "enabled": true,
+          "verification": "desktop_playing",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
     },
     {
       "id": 3,
+      "order": 3,
       "title": "RAP / R&B",
-      "description": "User-supplied Rap / R&B playlist",
-      "sourceType": "youtube",
-      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66au-YSAWGa6Qzyb8A4_7uQpF",
+      "description": "NostalgiaTV rap and R&B playlist.",
       "enabled": true,
-      "schedule": null
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "youtube_playlist",
+          "name": "Rap / R&B playlist",
+          "url": "PLqlmRlit66au-YSAWGa6Qzyb8A4_7uQpF",
+          "schedule": null,
+          "enabled": true,
+          "verification": "desktop_playing",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
     },
     {
       "id": 4,
+      "order": 4,
       "title": "RETRO TV",
-      "description": "User-supplied Nostalgia playlist",
-      "sourceType": "youtube",
-      "playlist": "https://www.youtube.com/playlist?list=PLqlmRlit66avrbq8_fQlnbRWQAxuqjCXA",
+      "description": "2000s TV simulator; original Nostalgia playlist remains selectable.",
       "enabled": true,
-      "schedule": null
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "My 2000s TV",
+          "url": "https://00s.theretrotvs.com/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        },
+        {
+          "type": "youtube_playlist",
+          "name": "Nostalgia playlist",
+          "url": "PLqlmRlit66avrbq8_fQlnbRWQAxuqjCXA",
+          "schedule": null,
+          "enabled": true,
+          "verification": "desktop_playing",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
     },
     {
       "id": 5,
-      "title": "OFF THE AIR",
-      "description": "User-supplied Off the Air playlist",
-      "sourceType": "youtube",
-      "playlist": "https://www.youtube.com/playlist?list=PLQl8zBB7bPvLWfGCVicg_kVmSVTGml2y4",
+      "order": 5,
+      "title": "90s TV",
+      "description": "1990s TV simulator.",
       "enabled": true,
-      "schedule": null
-    }
-  ],
-  "services": [
-    {
-      "id": "zlive",
-      "name": "OPEN ZLIVE.ST",
-      "url": "https://zlive.st/"
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "My 90s TV",
+          "url": "https://90s.theretrotvs.com/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
     },
     {
-      "id": "kobra",
-      "name": "Kobra matches",
-      "url": "https://ntv.st/matches/kobra"
+      "id": 6,
+      "order": 6,
+      "title": "VEVO 2K",
+      "description": "Pluto TV official Vevo 2K page.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "Pluto TV Vevo 2K",
+          "url": "https://pluto.tv/us/watch/live-tv/31215/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "order": 7,
+      "title": "MUSIC TV",
+      "description": "XITE official music television site; browser playback unverified.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "XITE",
+          "url": "https://www.xite.com/en/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "order": 8,
+      "title": "LATE NIGHT",
+      "description": "Adult Swim Off the Air; original playlist remains selectable.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "Adult Swim Off the Air",
+          "url": "https://www.adultswim.com/videos/off-the-air",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        },
+        {
+          "type": "youtube_playlist",
+          "name": "Off the Air playlist",
+          "url": "PLQl8zBB7bPvLWfGCVicg_kVmSVTGml2y4",
+          "schedule": null,
+          "enabled": true,
+          "verification": "desktop_playing",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "order": 9,
+      "title": "INDIE ARCHIVE",
+      "description": "The 120 Minutes Archive.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "altmusictv",
+          "url": "https://altmusictv.com/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "order": 10,
+      "title": "GARAGE RADIO",
+      "description": "SomaFM destinations; native embedding requires provider permission.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "external_site",
+          "name": "Indie Pop Rocks!",
+          "url": "https://somafm.com/indiepop/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        },
+        {
+          "type": "external_site",
+          "name": "Fluid",
+          "url": "https://somafm.com/fluid/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        },
+        {
+          "type": "external_site",
+          "name": "Groove Salad",
+          "url": "https://somafm.com/groovesalad/",
+          "schedule": null,
+          "enabled": true,
+          "verification": "opens_externally",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "order": 11,
+      "title": "PUBLIC TV",
+      "description": "Configurable verified public HLS stream.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "hls_stream",
+          "name": "Add verified HLS URL",
+          "url": "",
+          "schedule": null,
+          "enabled": true,
+          "verification": "untested",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
     }
-  ]
+  ],
+  "services": []
 }

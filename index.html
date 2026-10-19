@@ -15,6 +15,8 @@
   <main id="app" tabindex="0" aria-label="Garage TV. G or Y opens guide. S opens settings. C or Menu opens controls.">
     <section id="stage" class="stage" aria-label="Television player">
       <div id="player"></div>
+      <video id="native-video" playsinline preload="none" hidden></video>
+      <audio id="native-audio" preload="none" hidden></audio>
     </section>
     <div id="video-cover"></div>
     <div id="launch"><img src="./assets/garage-tv-primary-white.svg" width="344" height="114" alt="Garage TV"></div>
@@ -32,6 +34,7 @@
     <button id="playback-bug" aria-label="Open television controls" hidden><img src="./assets/garage-tv-bug-white.svg" width="80" height="49.87" alt="Garage TV"></button>
     <section id="directory" class="directory" aria-label="Live Sports directory" hidden>
       <iframe id="live-sports-frame" title="zlive.st live sports" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen hidden></iframe>
+      <p id="external-note">SELECT A DESTINATION. IT OPENS IN THIS TAB. USE EDGE BACK TO RETURN.</p>
       <div class="live-sports-actions" aria-label="Live Sports options">
         <div id="service-links" class="service-links"></div><button id="directory-fullscreen" type="button">FULL SCREEN</button><button id="edit-services" type="button">SERVICES</button>
       </div>
@@ -55,15 +58,21 @@
       <p>Saved on this browser. Export a backup to move settings between devices.</p>
       <form id="channel-form">
         <h2>Channel source</h2><label>Channel<select id="channel-select"></select></label>
+        <div class="channel-manage"><button id="add-channel" type="button">Add channel</button><button id="remove-channel" type="button">Remove channel</button><button id="channel-earlier" type="button">Move earlier</button><button id="channel-later" type="button">Move later</button></div>
         <label>Station title<input id="channel-title" maxlength="80" required></label>
         <label>Description<input id="channel-description" maxlength="240"></label>
         <label class="check"><input id="channel-enabled" type="checkbox"> Enabled</label>
+        <label>Source<select id="source-select"></select></label>
+        <div class="channel-manage"><button id="add-source" type="button">Add source</button><button id="remove-source" type="button">Remove source</button></div>
+        <label>Source type<select id="source-type"><option value="youtube_playlist">YouTube playlist</option><option value="hls_stream">HLS video</option><option value="audio_stream">Direct audio</option><option value="external_site">External website</option><option value="local_media">Local files</option></select></label>
+        <label>Source label<input id="source-name" maxlength="80"></label>
+        <label id="source-url-label">Source URL or playlist ID<input id="channel-playlist" type="text" autocomplete="off"></label>
+        <label class="check"><input id="source-enabled" type="checkbox"> Source enabled</label>
         <div id="youtube-settings">
-          <label>YouTube playlist URL or ID<input id="channel-playlist" type="text" placeholder="https://www.youtube.com/playlist?list=…" autocomplete="off"></label>
-          <p class="muted">Sports and Indie / Pop use public playlists from <a href="https://www.youtube.com/@NostalgiaTV-f4p/playlists">NostalgiaTV</a>. Rap / R&amp;B, Retro TV (Nostalgia), and Off the Air use your supplied playlists. Replace any source here.</p>
           <label>Optional virtual schedule JSON<textarea id="channel-schedule" rows="4" spellcheck="false" placeholder="Leave empty for continuous playlist playback"></textarea></label>
           <p class="muted">Schedule requires verified durations in seconds, an ISO epoch, and video IDs. See the repository’s schedule documentation. Playlist mode does not advance while away.</p>
         </div>
+        <div id="local-settings" hidden><label>Choose local audio/video files<input id="local-files" type="file" accept="audio/*,video/*" multiple></label><p class="muted">Files stay in this browser session. Choose them again after reloading.</p></div>
         <button type="submit">Save channel</button>
       </form>
       <section aria-labelledby="services-title"><h2 id="services-title">LIVE SPORTS links</h2><div id="service-edit-list"></div>
@@ -77,7 +86,7 @@
         <label>Configuration JSON<textarea id="config-json" rows="5" spellcheck="false"></textarea></label><button id="import-config" type="button">Import JSON</button>
         <label>Or choose a JSON file<input id="import-file" type="file" accept=".json,application/json"></label>
       </section>
-      <section><h2>Controls</h2><p>↑ / ↓ surf channels or move guide focus. G or Y opens the guide. Enter / A confirms. Esc / B closes the guide or opens it from failure. F toggles fullscreen. S opens Settings. D opens Diagnostics. C / Menu opens controls. M toggles mute. Space plays/pauses. [ / ] changes channels.</p><p>Xbox mapping requires hardware verification. Directional holds repeat after 350 ms, then every 160 ms. A/B/Y are edge-triggered. Edge may reserve B or keep input inside an external iframe; use the on-screen FULL SCREEN button or Edge’s cursor if needed.</p></section>
+      <section><h2>Controls</h2><p>↑ / ↓ surf channels or move guide focus. G or Y opens the guide. Enter / A confirms. Esc / B toggles the guide. F toggles fullscreen. S or Menu opens Settings. D opens Diagnostics. C opens controls. M toggles mute. Space plays/pauses. [ / ] changes channels.</p><p>Xbox mapping requires hardware verification. Directional holds repeat after 350 ms, then every 160 ms. A/B/Y are edge-triggered. Edge may reserve B or keep input inside an external iframe; use the on-screen FULL SCREEN button or Edge’s cursor if needed.</p></section>
       <p id="settings-notice" class="notice" role="status"></p>
     </section>
     <section id="diagnostics" class="panel diagnostics" role="dialog" aria-modal="false" aria-labelledby="diagnostics-title" hidden>
@@ -85,9 +94,10 @@
       <p>Xbox One hardware has not been tested. Press a controller button while this page has focus. Standard mapping is a proposal until verified here.</p>
       <pre id="diagnostic-output"></pre><button id="test-youtube" type="button">Test YouTube with official API demo video</button>
       <p class="muted">The test uses Google’s documented sample video, not your channel programming. Tune a channel to leave the test.</p><h2>Recent events</h2><pre id="event-log"></pre>
+      <h2>Channel compatibility</h2><p class="muted">Test tunes an internal source. External destinations are reported as links and are never played inside Garage TV by this test. Desktop results do not prove Xbox compatibility.</p><div id="compatibility-list"></div>
     </section>
   <footer id="controls" class="panel controls" aria-label="Television controls" hidden>
-    <button id="channel-down" type="button">CH −</button><button id="channel-up" type="button">CH +</button><button id="toggle-guide" type="button">Guide</button><button id="toggle-fullscreen" type="button">FULL SCREEN</button><button id="toggle-play" type="button">Play / Pause</button><button id="toggle-mute" type="button">Mute</button><button id="skip-video" type="button">Next video</button><button id="open-settings" type="button">Settings</button><button id="open-diagnostics" type="button">Diagnostics</button><button type="button" data-close>Close</button>
+    <button id="channel-down" type="button">CH −</button><button id="channel-up" type="button">CH +</button><button id="toggle-guide" type="button">Guide</button><button id="toggle-fullscreen" type="button">FULL SCREEN</button><button id="toggle-play" type="button">Play / Pause</button><button id="toggle-mute" type="button">Mute</button><button id="skip-video" type="button">Next video</button><button id="next-source" type="button">Next source</button><button id="open-settings" type="button">Settings</button><button id="open-diagnostics" type="button">Diagnostics</button><button type="button" data-close>Close</button>
   </footer>
   </main>
   <div id="status" class="sr-only" role="status" aria-live="polite"></div>

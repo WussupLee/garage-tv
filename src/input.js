@@ -14,7 +14,7 @@ export class GamepadInput {
     const current = {};
     let pending = null;
     for (const pad of pads) {
-      const bindings = { 0: 'confirm', 1: 'back', 3: 'guide', 4: 'previous', 5: 'next', 9: 'controls', 12: 'up', 13: 'down', 14: 'left', 15: 'right' };
+      const bindings = { 0: 'confirm', 1: 'back', 3: 'guide', 4: 'previous', 5: 'next', 9: 'settings', 12: 'up', 13: 'down', 14: 'left', 15: 'right' };
       pad.buttons.forEach((button, index) => {
         const key = pad.index + ':' + index;
         current[key] = button.pressed || button.value > 0.6;
