@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "lineupRevision": 2,
+  "lineupRevision": 3,
   "seed": "garage-tv-v2",
   "channels": [
     {
@@ -41,7 +41,8 @@
           "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "shuffleEachLaunch": true
         }
       ]
     },
@@ -62,7 +63,8 @@
           "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "shuffleEachLaunch": true
         }
       ]
     },
@@ -83,35 +85,26 @@
           "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "shuffleEachLaunch": true
         }
       ]
     },
     {
       "id": 4,
       "order": 4,
-      "title": "RETRO TV",
-      "description": "2000s TV simulator; original Nostalgia playlist remains selectable.",
+      "title": "NOSTALGIA",
+      "description": "Randomized clips from the supplied Nostalgia playlist.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
-        {
-          "type": "external_site",
-          "name": "My 2000s TV",
-          "url": "https://00s.theretrotvs.com/",
-          "schedule": null,
-          "enabled": true,
-          "verification": "opens_externally",
-          "capabilities": {
-            "autoplay": false
-          }
-        },
         {
           "type": "youtube_playlist",
           "name": "Nostalgia playlist",
           "url": "PLqlmRlit66avrbq8_fQlnbRWQAxuqjCXA",
           "schedule": null,
           "enabled": true,
+          "shuffleEachLaunch": true,
           "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
@@ -122,18 +115,160 @@
     {
       "id": 5,
       "order": 5,
-      "title": "90s TV",
-      "description": "1990s TV simulator.",
+      "title": "90s MUSIC",
+      "description": "Verified official sessions from defining 1990s artists.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
         {
-          "type": "external_site",
-          "name": "My 90s TV",
-          "url": "https://90s.theretrotvs.com/",
+          "type": "youtube_queue",
+          "name": "90s music verified rotation",
+          "items": [
+            {
+              "videoId": "gwgq-IWtcPE",
+              "title": "Slowdive - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "D7-5_0O-EaU",
+              "title": "Low - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2012,
+              "kind": "full"
+            },
+            {
+              "videoId": "59SNnjiy0lM",
+              "title": "Ride - Seagull (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2015,
+              "kind": "full"
+            },
+            {
+              "videoId": "7shA7raCHq8",
+              "title": "Ride - Vapour Trail (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2015,
+              "kind": "full"
+            },
+            {
+              "videoId": "5s6NwwCHVdo",
+              "title": "Kula Shaker - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "6pYWcC8tFwY",
+              "title": "Ida - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "KQJ21NV1o8Q",
+              "title": "Squirrel Nut Zippers - Put A Lid On It (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "mZCS3daSHRI",
+              "title": "Mudhoney - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2012,
+              "kind": "full"
+            },
+            {
+              "videoId": "nlxxDr01V_c",
+              "title": "Dinosaur Jr. - Full Performance with interview by Henry Rollins (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2012,
+              "kind": "full"
+            },
+            {
+              "videoId": "W02vyyxlDHI",
+              "title": "Dinosaur Jr. - Full Performance (Live on KEXP at Home)",
+              "provider": "KEXP",
+              "year": 2021,
+              "kind": "full"
+            },
+            {
+              "videoId": "QPA1wBBcO0A",
+              "title": "Nada Surf - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "rDwaylt7gv0",
+              "title": "Luna - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "TwKzkAYZtCE",
+              "title": "Mark Lanegan - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2014,
+              "kind": "full"
+            },
+            {
+              "videoId": "XMErPIgu8cc",
+              "title": "The Chills - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "xObAYlZxafI",
+              "title": "Modern English - I Melt With You (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "uRXpvXpc45c",
+              "title": "American Football - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "iFnE1zgcCo4",
+              "title": "Earth - Scalphunter's Blues (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "2tKbQQNsUO8",
+              "title": "Polaris - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2015,
+              "kind": "full"
+            },
+            {
+              "videoId": "2xJUJYnUGxM",
+              "title": "Rival Schools - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "T_dVQL-uDvE",
+              "title": "Soul Asylum - Runaway Train (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            }
+          ],
           "schedule": null,
           "enabled": true,
-          "verification": "opens_externally",
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
           }
@@ -143,18 +278,160 @@
     {
       "id": 6,
       "order": 6,
-      "title": "VEVO 2K",
-      "description": "Pluto TV official Vevo 2K page.",
+      "title": "Y2K HITS",
+      "description": "Verified official sessions from the 2000s alternative era.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
         {
-          "type": "external_site",
-          "name": "Pluto TV Vevo 2K",
-          "url": "https://pluto.tv/us/watch/live-tv/31215/",
+          "type": "youtube_queue",
+          "name": "y2k hits verified rotation",
+          "items": [
+            {
+              "videoId": "C5-5Uu7HNtA",
+              "title": "Lykke Li - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2014,
+              "kind": "full"
+            },
+            {
+              "videoId": "ebG4-E4MCuM",
+              "title": "Interpol - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2026,
+              "kind": "full"
+            },
+            {
+              "videoId": "GwetNnBkgQM",
+              "title": "Metric - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2022,
+              "kind": "full"
+            },
+            {
+              "videoId": "iVGowjDdLw8",
+              "title": "Silversun Pickups - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2015,
+              "kind": "full"
+            },
+            {
+              "videoId": "KcmrAStFKnI",
+              "title": "The Kills - Black Balloon (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2010,
+              "kind": "full"
+            },
+            {
+              "videoId": "KoQy_p3vNb8",
+              "title": "Band Of Horses - No One's Gonna Love You (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2014,
+              "kind": "full"
+            },
+            {
+              "videoId": "pcVRrlmpcWk",
+              "title": "Alt-J - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2012,
+              "kind": "full"
+            },
+            {
+              "videoId": "e2f0Ff2cfQY",
+              "title": "The Hives - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2012,
+              "kind": "full"
+            },
+            {
+              "videoId": "s7FxVSDLonY",
+              "title": "Deltron 3030 - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2013,
+              "kind": "full"
+            },
+            {
+              "videoId": "u9_Fph5RrT4",
+              "title": "Thievery Corporation - Forgotten People (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2016,
+              "kind": "full"
+            },
+            {
+              "videoId": "5eK6SYVyZRk",
+              "title": "Thievery Corporation - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2016,
+              "kind": "full"
+            },
+            {
+              "videoId": "ESZwc3Clbvc",
+              "title": "Blonde Redhead - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "Kk5gERLx_dg",
+              "title": "Old 97's - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2014,
+              "kind": "full"
+            },
+            {
+              "videoId": "Nz1T6onESVw",
+              "title": "The Sea and Cake - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "q42HIt_Zn-c",
+              "title": "Peaches - Vaginoplasty (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2015,
+              "kind": "full"
+            },
+            {
+              "videoId": "rMaWEXO5K20",
+              "title": "Mogwai - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "VA0rolG0-24",
+              "title": "Bottomless Pit - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2014,
+              "kind": "full"
+            },
+            {
+              "videoId": "WZ-zJuAI05A",
+              "title": "Three Mile Pilot - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2012,
+              "kind": "full"
+            },
+            {
+              "videoId": "6647smeduGI",
+              "title": "Alvvays - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2022,
+              "kind": "full"
+            },
+            {
+              "videoId": "8vw61KskfPo",
+              "title": "Mitski - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2017,
+              "kind": "full"
+            }
+          ],
           "schedule": null,
           "enabled": true,
-          "verification": "opens_externally",
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
           }
@@ -164,18 +441,160 @@
     {
       "id": 7,
       "order": 7,
-      "title": "MUSIC TV",
-      "description": "XITE official music television site; browser playback unverified.",
+      "title": "ROCK / PUNK",
+      "description": "Verified official rock and punk performances.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
         {
-          "type": "external_site",
-          "name": "XITE",
-          "url": "https://www.xite.com/en/",
+          "type": "youtube_queue",
+          "name": "rock / punk verified rotation",
+          "items": [
+            {
+              "videoId": "-enVr4wr0XI",
+              "title": "Panic Shack - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2026,
+              "kind": "full"
+            },
+            {
+              "videoId": "08qqaXOwJjU",
+              "title": "Death From Above 1979 - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "0jm37GR1c9M",
+              "title": "Exotic Animal Petting Zoo on Audiotree Live (Full Session)",
+              "provider": "Audiotree",
+              "year": 2017,
+              "kind": "full"
+            },
+            {
+              "videoId": "2_oQaH124yk",
+              "title": "Native Sun on Audiotree Live (Full Session)",
+              "provider": "Audiotree",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "20SMrNWV_UQ",
+              "title": "Pup - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2014,
+              "kind": "full"
+            },
+            {
+              "videoId": "2QA7MVZInEc",
+              "title": "High Vis - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "5la4Ld3hwhI",
+              "title": "Austin TV - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "5Sbbiv5iSiQ",
+              "title": "IDLES - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "5ykxccMCszw",
+              "title": "BIG|BRAVE on Audiotree Live (Full Session)",
+              "provider": "Audiotree",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "6FtN3HV1voM",
+              "title": "SPRINTS - Full Performance (live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "7HoTZ0FelFU",
+              "title": "Listener on Audiotree Live (Full Session #2)",
+              "provider": "Audiotree",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "928ViCUbYhs",
+              "title": "Amyl and The Sniffers - Full Performance (Live on KEXP at Home)",
+              "provider": "KEXP",
+              "year": 2021,
+              "kind": "full"
+            },
+            {
+              "videoId": "b_wcehWXDDA",
+              "title": "Dead Pioneers - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "C63HVJvxr-E",
+              "title": "Thornhill on Audiotree Live (Full Session)",
+              "provider": "Audiotree",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "Cz3iXXb-BCw",
+              "title": "Glare on Audiotree Live (Full Session)",
+              "provider": "Audiotree",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "Dfh7ekowcro",
+              "title": "Font on Audiotree Live (Full Session)",
+              "provider": "Audiotree",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "dgOSHDitcds",
+              "title": "Alvvays - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "dIvEbRZcDtA",
+              "title": "SPRINTS - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2026,
+              "kind": "full"
+            },
+            {
+              "videoId": "e6FMk-HWXsc",
+              "title": "Sleeping With Sirens on Audiotree Live (Full Session)",
+              "provider": "Audiotree",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "9ndc3GW6SIM",
+              "title": "THE THE - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            }
+          ],
           "schedule": null,
           "enabled": true,
-          "verification": "opens_externally",
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
           }
@@ -185,28 +604,18 @@
     {
       "id": 8,
       "order": 8,
-      "title": "LATE NIGHT",
-      "description": "Adult Swim Off the Air; original playlist remains selectable.",
+      "title": "OFF THE AIR",
+      "description": "Adult Swim Off the Air episodes from the supplied playlist.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
-        {
-          "type": "external_site",
-          "name": "Adult Swim Off the Air",
-          "url": "https://www.adultswim.com/videos/off-the-air",
-          "schedule": null,
-          "enabled": true,
-          "verification": "opens_externally",
-          "capabilities": {
-            "autoplay": false
-          }
-        },
         {
           "type": "youtube_playlist",
           "name": "Off the Air playlist",
           "url": "PLQl8zBB7bPvLWfGCVicg_kVmSVTGml2y4",
           "schedule": null,
           "enabled": true,
+          "shuffleEachLaunch": true,
           "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
@@ -217,18 +626,160 @@
     {
       "id": 9,
       "order": 9,
-      "title": "INDIE ARCHIVE",
-      "description": "The 120 Minutes Archive.",
+      "title": "ELECTRONIC",
+      "description": "Verified official electronic sessions and live sets.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
         {
-          "type": "external_site",
-          "name": "altmusictv",
-          "url": "https://altmusictv.com/",
+          "type": "youtube_queue",
+          "name": "electronic verified rotation",
+          "items": [
+            {
+              "videoId": "_3EuiU1qdpE",
+              "title": "Hania Rani - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2022,
+              "kind": "full"
+            },
+            {
+              "videoId": "3-us6fTBziA",
+              "title": "Crumb - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "4fHw4GeW3EU",
+              "title": "Kiasmos - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "5eK6SYVyZRk",
+              "title": "Thievery Corporation - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2016,
+              "kind": "full"
+            },
+            {
+              "videoId": "bJX6-Rd0zkA",
+              "title": "SOFI TUKKER - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "c_56qQqxvm4",
+              "title": "Tycho - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2014,
+              "kind": "full"
+            },
+            {
+              "videoId": "DHbn44-Bg4o",
+              "title": "Molchat Doma - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "dRrlo5Retng",
+              "title": "Bonobo - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2022,
+              "kind": "full"
+            },
+            {
+              "videoId": "E4X56wIOZns",
+              "title": "Glass Beams - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "GJkuTx1DQzg",
+              "title": "Amelie Lens at Atomium in Brussels, Belgium for Cercle",
+              "provider": "Cercle",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "hENgrbIMiy4",
+              "title": "ARTBAT at Bondinho Po de Acar in Rio de Janeiro, Brazil for Cercle",
+              "provider": "Cercle",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "HJgjZ6vbHI0",
+              "title": "Pixel Grip - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "HOe4k1V5uCY",
+              "title": "BRUIT - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "HVkVq_qs7FM",
+              "title": "Moderat - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2016,
+              "kind": "full"
+            },
+            {
+              "videoId": "oCNucnhn6fU",
+              "title": "Vintage Culture for Cercle at Museu do Amanh in Rio de Janeiro, Brazil",
+              "provider": "Cercle",
+              "year": 2022,
+              "kind": "full"
+            },
+            {
+              "videoId": "R_qqeKC-uak",
+              "title": "Nicola Cruz live at Iguaz Falls in Argentina for Cercle",
+              "provider": "Cercle",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "xF_QkfZI1mM",
+              "title": "Stephan Bodzin live for Cercle at Piz Gloria, Switzerland",
+              "provider": "Cercle",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "YDJEo-rQrfw",
+              "title": "Folamour at Cathdrale Saint-Pierre in Geneva, Switzerland for Cercle & W Hotels",
+              "provider": "Cercle",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "Qu5RuOIUlhw",
+              "title": "Jungle - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2021,
+              "kind": "full"
+            },
+            {
+              "videoId": "Md4yIaUa7uA",
+              "title": "AURORA - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            }
+          ],
           "schedule": null,
           "enabled": true,
-          "verification": "opens_externally",
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
           }
@@ -238,40 +789,160 @@
     {
       "id": 10,
       "order": 10,
-      "title": "GARAGE RADIO",
-      "description": "SomaFM destinations; native embedding requires provider permission.",
+      "title": "SOUL / FUNK",
+      "description": "Verified official soul and funk performances.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
         {
-          "type": "external_site",
-          "name": "Indie Pop Rocks!",
-          "url": "https://somafm.com/indiepop/",
+          "type": "youtube_queue",
+          "name": "soul / funk verified rotation",
+          "items": [
+            {
+              "videoId": "-A7MGoDeumc",
+              "title": "Ama Lou - Tried Up | A COLORS SHOW",
+              "provider": "COLORS",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "03vW2DtnrRU",
+              "title": "The True Loves - The Dirty (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "2PDPOgh3VXU",
+              "title": "Parlor Greens - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "8sJM1PLM7dQ",
+              "title": "Kings Go Forth - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2012,
+              "kind": "full"
+            },
+            {
+              "videoId": "ANyAsC-Rs_M",
+              "title": "Huey and the InFLOWentials - Resolution (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "b8lNUArJvvs",
+              "title": "FaceSoul - Grow (Freestyle) | A COLORS ENCORE",
+              "provider": "COLORS",
+              "year": 2021,
+              "kind": "full"
+            },
+            {
+              "videoId": "DKE7Bb3wjhg",
+              "title": "BALTHVS - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "ev0yILvCdMM",
+              "title": "Charles Bradley and The Menahan Street Band - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2013,
+              "kind": "full"
+            },
+            {
+              "videoId": "Ey2J6rVlySU",
+              "title": "KOKOROKO - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "FCTzGMW3X3A",
+              "title": "Orgone - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2013,
+              "kind": "full"
+            },
+            {
+              "videoId": "fuAE3U1NvOs",
+              "title": "Masego - Navajo | A COLORS SHOW",
+              "provider": "COLORS",
+              "year": 2017,
+              "kind": "full"
+            },
+            {
+              "videoId": "G8YLxY2BziE",
+              "title": "Delvon Lamarr Organ Trio - Full Performance (Live on KEXP at Home)",
+              "provider": "KEXP",
+              "year": 2021,
+              "kind": "full"
+            },
+            {
+              "videoId": "gc2kXvo65ac",
+              "title": "Chicano Batman - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "H49tu_VoViU",
+              "title": "True Loves - Full Performance (Live on KEXP at Home)",
+              "provider": "KEXP",
+              "year": 2021,
+              "kind": "full"
+            },
+            {
+              "videoId": "Hbn4tTt9624",
+              "title": "Charles Bradley & His Extraordinaires - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2016,
+              "kind": "full"
+            },
+            {
+              "videoId": "I2njMBxlnmM",
+              "title": "The True Loves - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2018,
+              "kind": "full"
+            },
+            {
+              "videoId": "iCopIeeA2R0",
+              "title": "Kelly Finnigan & The Atonements - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "JhADJTlRhOE",
+              "title": "Delvon Lamarr Organ Trio - Move On Up (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2017,
+              "kind": "full"
+            },
+            {
+              "videoId": "kDySVsL7shc",
+              "title": "The Soul Rebels - Culture In The Ghetto (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "NdfR_6dAlBA",
+              "title": "The Headhunters - Full Performance (Live on KEXP)",
+              "provider": "KEXP",
+              "year": 2024,
+              "kind": "full"
+            }
+          ],
           "schedule": null,
           "enabled": true,
-          "verification": "opens_externally",
-          "capabilities": {
-            "autoplay": false
-          }
-        },
-        {
-          "type": "external_site",
-          "name": "Fluid",
-          "url": "https://somafm.com/fluid/",
-          "schedule": null,
-          "enabled": true,
-          "verification": "opens_externally",
-          "capabilities": {
-            "autoplay": false
-          }
-        },
-        {
-          "type": "external_site",
-          "name": "Groove Salad",
-          "url": "https://somafm.com/groovesalad/",
-          "schedule": null,
-          "enabled": true,
-          "verification": "opens_externally",
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
           }
@@ -281,18 +952,160 @@
     {
       "id": 11,
       "order": 11,
-      "title": "PUBLIC TV",
-      "description": "Configurable verified public HLS stream.",
+      "title": "SPACE TV",
+      "description": "Documentaries and programs from official NASA channels.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
         {
-          "type": "hls_stream",
-          "name": "Add verified HLS URL",
-          "url": "",
+          "type": "youtube_queue",
+          "name": "NASA rotation",
+          "items": [
+            {
+              "videoId": "uSMGENDH_QI",
+              "title": "Cosmic Dawn",
+              "provider": "NASA",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "GNJpoP642wc",
+              "title": "The Journeys of Apollo",
+              "provider": "NASA",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "SvaG0xDdP8g",
+              "title": "The Space Shuttle",
+              "provider": "NASA",
+              "year": 2011,
+              "kind": "full"
+            },
+            {
+              "videoId": "jOb2DQWvDvc",
+              "title": "Planetary Defenders",
+              "provider": "NASA",
+              "year": 2025,
+              "kind": "full"
+            },
+            {
+              "videoId": "SY-hQJ5pMd4",
+              "title": "JPL and the Space Age: Triumph at Saturn",
+              "provider": "NASA JPL",
+              "year": 2019,
+              "kind": "full"
+            },
+            {
+              "videoId": "qyphzmuzF18",
+              "title": "JPL and the Space Age: Explorer 1",
+              "provider": "NASA JPL",
+              "year": 2020,
+              "kind": "full"
+            },
+            {
+              "videoId": "UupndWl0G_I",
+              "title": "JPL and the Space Age: Destination Moon",
+              "provider": "NASA JPL",
+              "year": 2021,
+              "kind": "full"
+            },
+            {
+              "videoId": "cVrRzGbV9Mk",
+              "title": "JPL and the Space Age: To the Rescue",
+              "provider": "NASA JPL",
+              "year": 2022,
+              "kind": "full"
+            },
+            {
+              "videoId": "4bim5EEwvVI",
+              "title": "JPL and the Space Age: The Footsteps of Voyager",
+              "provider": "NASA JPL",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "-kBngfyrvuk",
+              "title": "Space Out",
+              "provider": "NASA",
+              "year": 2023,
+              "kind": "full"
+            },
+            {
+              "videoId": "WS1dnopXMFY",
+              "title": "Other Worlds",
+              "provider": "NASA",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "DIkqs9_FK28",
+              "title": "Down to Earth: The Astronaut's Perspective",
+              "provider": "NASA",
+              "year": 2020,
+              "kind": "full"
+            },
+            {
+              "videoId": "wqiVQFYHXbg",
+              "title": "NASA Explorers: Back to Gravity",
+              "provider": "NASA",
+              "year": 2020,
+              "kind": "full"
+            },
+            {
+              "videoId": "yae96AxH7V0",
+              "title": "Artemis I Path to the Pad",
+              "provider": "NASA",
+              "year": 2022,
+              "kind": "full"
+            },
+            {
+              "videoId": "u1FoytXVedQ",
+              "title": "25 Years of Flight Research",
+              "provider": "NASA Armstrong",
+              "year": 2024,
+              "kind": "full"
+            },
+            {
+              "videoId": "5b3n-u_0QAI",
+              "title": "Planetary Defenders: This Is Not an Exercise",
+              "provider": "NASA",
+              "year": 2026,
+              "kind": "full"
+            },
+            {
+              "videoId": "jHKf1eHp3eQ",
+              "title": "Artemis III: Our Next Step Back to the Moon",
+              "provider": "NASA",
+              "year": 2026,
+              "kind": "full"
+            },
+            {
+              "videoId": "MVt2139voxk",
+              "title": "For Earth, With Love: Artemis II",
+              "provider": "NASA",
+              "year": 2026,
+              "kind": "full"
+            },
+            {
+              "videoId": "ttiLcMUQq80",
+              "title": "Moonbound: For All Humanity",
+              "provider": "NASA",
+              "year": 2026,
+              "kind": "full"
+            },
+            {
+              "videoId": "bfw4G59j9uw",
+              "title": "Moonbound: Charting the Course",
+              "provider": "NASA",
+              "year": 2026,
+              "kind": "full"
+            }
+          ],
           "schedule": null,
           "enabled": true,
-          "verification": "untested",
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
           }
@@ -300,57 +1113,228 @@
       ]
     },
     {
-      "id": 12, "order": 12, "title": "FOOTBALL",
-      "description": "College football classics in-app; official NFL archive available externally.",
-      "enabled": true, "activeSource": 0,
+      "id": 12,
+      "order": 12,
+      "title": "FOOTBALL",
+      "description": "College football classics in-app.",
+      "enabled": true,
+      "activeSource": 0,
       "sources": [
-        { "type": "youtube_queue", "name": "Classic football rotation", "enabled": true, "verification": "desktop_playing", "items": [
-          { "videoId": "WitAjwWY6EQ", "title": "Texas vs USC Rose Bowl highlights", "provider": "ESPN College Football", "year": 2006, "kind": "highlights" },
-          { "videoId": "7vk_fGPDXDY", "title": "Texas vs USC Rose Bowl rewind", "provider": "ESPN", "year": 2006, "kind": "partial" },
-          { "videoId": "HXVzj_EbAuA", "title": "Ohio State vs Miami double overtime", "provider": "ESPN Throwback", "year": 2003, "kind": "highlights" },
-          { "videoId": "emZIIc_n9kw", "title": "Florida State vs Auburn title game", "provider": "ESPN College Football", "year": 2014, "kind": "highlights" },
-          { "videoId": "1dFhY-AJSE4", "title": "Greatest college title game moments", "provider": "ESPN College Football", "year": 2020, "kind": "highlights" },
-          { "videoId": "H1vbeL282po", "title": "Texas vs Alabama title game retrospective", "provider": "ESPN College Football", "year": 2010, "kind": "partial" },
-          { "videoId": "ENOcodt67TM", "title": "Classic Iron Bowl rivalry games", "provider": "ESPN College Football", "year": 2013, "kind": "highlights" },
-          { "videoId": "8K-HUNIFEno", "title": "CFP title game highlights of the decade", "provider": "ESPN College Football", "year": 2020, "kind": "highlights" }
-        ] },
-        { "type": "external_site", "name": "NFL Throwback archive", "url": "https://www.nfl.com/videos/channel/nfl-throwback-vc", "enabled": true, "verification": "opens_externally" }
+        {
+          "type": "youtube_queue",
+          "name": "Classic football rotation",
+          "enabled": true,
+          "verification": "desktop_playing",
+          "items": [
+            {
+              "videoId": "WitAjwWY6EQ",
+              "title": "Texas vs USC Rose Bowl highlights",
+              "provider": "ESPN College Football",
+              "year": 2006,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "7vk_fGPDXDY",
+              "title": "Texas vs USC Rose Bowl rewind",
+              "provider": "ESPN",
+              "year": 2006,
+              "kind": "partial"
+            },
+            {
+              "videoId": "HXVzj_EbAuA",
+              "title": "Ohio State vs Miami double overtime",
+              "provider": "ESPN Throwback",
+              "year": 2003,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "emZIIc_n9kw",
+              "title": "Florida State vs Auburn title game",
+              "provider": "ESPN College Football",
+              "year": 2014,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "1dFhY-AJSE4",
+              "title": "Greatest college title game moments",
+              "provider": "ESPN College Football",
+              "year": 2020,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "H1vbeL282po",
+              "title": "Texas vs Alabama title game retrospective",
+              "provider": "ESPN College Football",
+              "year": 2010,
+              "kind": "partial"
+            },
+            {
+              "videoId": "ENOcodt67TM",
+              "title": "Classic Iron Bowl rivalry games",
+              "provider": "ESPN College Football",
+              "year": 2013,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "8K-HUNIFEno",
+              "title": "CFP title game highlights of the decade",
+              "provider": "ESPN College Football",
+              "year": 2020,
+              "kind": "highlights"
+            }
+          ],
+          "shuffleEachLaunch": true
+        }
       ]
     },
     {
-      "id": 13, "order": 13, "title": "BASKETBALL",
-      "description": "Classic NBA games and highlights from ESPN; NBA archive available externally.",
-      "enabled": true, "activeSource": 0,
+      "id": 13,
+      "order": 13,
+      "title": "BASKETBALL",
+      "description": "Classic NBA games and highlights from ESPN.",
+      "enabled": true,
+      "activeSource": 0,
       "sources": [
-        { "type": "youtube_queue", "name": "Classic basketball rotation", "enabled": true, "verification": "desktop_playing", "items": [
-          { "videoId": "EoVTttvKfRs", "title": "Cavaliers vs Warriors 2016 Finals Game 7", "provider": "ESPN", "year": 2016, "kind": "full" },
-          { "videoId": "vfhGmT0y9mg", "title": "2011 NBA Finals in 13 minutes", "provider": "ESPN", "year": 2011, "kind": "highlights" },
-          { "videoId": "oFP83xQaG0A", "title": "2016 NBA Finals in 13 minutes", "provider": "ESPN", "year": 2016, "kind": "highlights" },
-          { "videoId": "hcMl6LKwqRE", "title": "LeBron vs Kobe 2008 duel", "provider": "NBA on ESPN", "year": 2008, "kind": "highlights" },
-          { "videoId": "c2QL6PoTl1w", "title": "Lakers and Celtics Finals rivalry", "provider": "ESPN", "year": 2008, "kind": "highlights" },
-          { "videoId": "LZtatLHnQcQ", "title": "Jordan Bulls 1990-91 dynasty", "provider": "ESPN", "year": 1991, "kind": "highlights" },
-          { "videoId": "Budtv1HCLpQ", "title": "Jordan Bulls 1995-96 dynasty", "provider": "ESPN", "year": 1996, "kind": "highlights" },
-          { "videoId": "0Rk5Tz9BRIA", "title": "LeBron chase-down block 2016 Finals", "provider": "ESPN", "year": 2016, "kind": "highlights" }
-        ] },
-        { "type": "external_site", "name": "NBA Classic Games", "url": "https://www.nba.com/watch/list/collection/classic-games", "enabled": true, "verification": "opens_externally" }
+        {
+          "type": "youtube_queue",
+          "name": "Classic basketball rotation",
+          "enabled": true,
+          "verification": "desktop_playing",
+          "items": [
+            {
+              "videoId": "EoVTttvKfRs",
+              "title": "Cavaliers vs Warriors 2016 Finals Game 7",
+              "provider": "ESPN",
+              "year": 2016,
+              "kind": "full"
+            },
+            {
+              "videoId": "vfhGmT0y9mg",
+              "title": "2011 NBA Finals in 13 minutes",
+              "provider": "ESPN",
+              "year": 2011,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "oFP83xQaG0A",
+              "title": "2016 NBA Finals in 13 minutes",
+              "provider": "ESPN",
+              "year": 2016,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "hcMl6LKwqRE",
+              "title": "LeBron vs Kobe 2008 duel",
+              "provider": "NBA on ESPN",
+              "year": 2008,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "c2QL6PoTl1w",
+              "title": "Lakers and Celtics Finals rivalry",
+              "provider": "ESPN",
+              "year": 2008,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "LZtatLHnQcQ",
+              "title": "Jordan Bulls 1990-91 dynasty",
+              "provider": "ESPN",
+              "year": 1991,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "Budtv1HCLpQ",
+              "title": "Jordan Bulls 1995-96 dynasty",
+              "provider": "ESPN",
+              "year": 1996,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "0Rk5Tz9BRIA",
+              "title": "LeBron chase-down block 2016 Finals",
+              "provider": "ESPN",
+              "year": 2016,
+              "kind": "highlights"
+            }
+          ],
+          "shuffleEachLaunch": true
+        }
       ]
     },
     {
-      "id": 14, "order": 14, "title": "FUTBOL",
-      "description": "Classic club Futbol highlights in-app; FIFA World Cup archive externally.",
-      "enabled": true, "activeSource": 0,
+      "id": 14,
+      "order": 14,
+      "title": "FUTBOL",
+      "description": "Classic club Futbol highlights in-app.",
+      "enabled": true,
+      "activeSource": 0,
       "sources": [
-        { "type": "youtube_queue", "name": "Classic Futbol rotation", "enabled": true, "verification": "desktop_playing", "items": [
-          { "videoId": "3ojXHf293M8", "title": "Liverpool vs Milan Istanbul final", "provider": "Liverpool FC", "year": 2005, "kind": "highlights" },
-          { "videoId": "j6LZLm_9bSE", "title": "Liverpool vs Milan final recap", "provider": "TUDN USA", "year": 2005, "kind": "highlights" },
-          { "videoId": "_MCZrU4Z5hg", "title": "Manchester United vs Bayern final", "provider": "TUDN USA", "year": 1999, "kind": "highlights" },
-          { "videoId": "zXyVq_0eTj4", "title": "1999 Champions League final retro", "provider": "TUDN USA", "year": 1999, "kind": "highlights" },
-          { "videoId": "pKgJT8nqVSQ", "title": "Liverpool vs Alaves European classic", "provider": "Liverpool FC", "year": 2001, "kind": "highlights" },
-          { "videoId": "y54DrDfVTtc", "title": "Arsenal vs Liverpool FA Cup classic", "provider": "Liverpool FC", "year": 2001, "kind": "highlights" },
-          { "videoId": "jZSOXy2K6UQ", "title": "Liverpool vs Arsenal European classic", "provider": "Liverpool FC", "year": 2008, "kind": "highlights" },
-          { "videoId": "vItaJtaAgEY", "title": "Liverpool vs Juventus European classic", "provider": "Liverpool FC", "year": 2005, "kind": "highlights" }
-        ] },
-        { "type": "external_site", "name": "FIFA+ Archive", "url": "https://www.plus.fifa.com/en/catalogue/archive", "enabled": true, "verification": "opens_externally" }
+        {
+          "type": "youtube_queue",
+          "name": "Classic Futbol rotation",
+          "enabled": true,
+          "verification": "desktop_playing",
+          "items": [
+            {
+              "videoId": "3ojXHf293M8",
+              "title": "Liverpool vs Milan Istanbul final",
+              "provider": "Liverpool FC",
+              "year": 2005,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "j6LZLm_9bSE",
+              "title": "Liverpool vs Milan final recap",
+              "provider": "TUDN USA",
+              "year": 2005,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "_MCZrU4Z5hg",
+              "title": "Manchester United vs Bayern final",
+              "provider": "TUDN USA",
+              "year": 1999,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "zXyVq_0eTj4",
+              "title": "1999 Champions League final retro",
+              "provider": "TUDN USA",
+              "year": 1999,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "pKgJT8nqVSQ",
+              "title": "Liverpool vs Alaves European classic",
+              "provider": "Liverpool FC",
+              "year": 2001,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "y54DrDfVTtc",
+              "title": "Arsenal vs Liverpool FA Cup classic",
+              "provider": "Liverpool FC",
+              "year": 2001,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "jZSOXy2K6UQ",
+              "title": "Liverpool vs Arsenal European classic",
+              "provider": "Liverpool FC",
+              "year": 2008,
+              "kind": "highlights"
+            },
+            {
+              "videoId": "vItaJtaAgEY",
+              "title": "Liverpool vs Juventus European classic",
+              "provider": "Liverpool FC",
+              "year": 2005,
+              "kind": "highlights"
+            }
+          ],
+          "shuffleEachLaunch": true
+        }
       ]
     }
   ],

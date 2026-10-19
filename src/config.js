@@ -1,6 +1,7 @@
 export const CONFIG_KEY = 'garage-tv.config.v2';
 export const LEGACY_CONFIG_KEY = 'garage-tv.config.v1';
 export const BOOKMARK_KEY = 'garage-tv.bookmarks.v1';
+export const LAST_START_KEY = 'garage-tv.last-start.v1';
 export const SOURCE_TYPES = ['youtube_playlist', 'youtube_queue', 'hls_stream', 'audio_stream', 'external_site', 'local_media'];
 export const clone = value => JSON.parse(JSON.stringify(value));
 
@@ -72,6 +73,7 @@ function normalizeSource(raw) {
   return {
     type, name: typeof raw.name === 'string' ? raw.name.slice(0, 80).trim() : '',
     url, schedule, items, enabled: raw.enabled !== false,
+    shuffleEachLaunch: ['youtube_playlist', 'youtube_queue'].includes(type) && raw.shuffleEachLaunch === true,
     verification: ['desktop_playing', 'requires_interaction', 'opens_externally', 'unsupported', 'untested'].includes(raw.verification) ? raw.verification : 'untested',
     capabilities: {
       embed: type !== 'external_site',
@@ -122,6 +124,19 @@ export function startupChannel(channels, random = Math.random) {
   return candidates.length ? candidates[Math.floor(random() * candidates.length) % candidates.length] : null;
 }
 
+export function shuffledQueue(items, random = Math.random, avoidFirst = '') {
+  const result = items.map(item => ({ ...item }));
+  for (let index = result.length - 1; index > 0; index--) {
+    const swap = Math.floor(random() * (index + 1));
+    [result[index], result[swap]] = [result[swap], result[index]];
+  }
+  if (result.length > 1 && result[0]?.videoId === avoidFirst) {
+    const swap = 1 + Math.floor(random() * (result.length - 1));
+    [result[0], result[swap]] = [result[swap], result[0]];
+  }
+  return result;
+}
+
 export function readStorage(key, fallback) {
   try { const value = localStorage.getItem(key); return value ? JSON.parse(value) : fallback; } catch (_) { return fallback; }
 }
@@ -134,6 +149,26 @@ export function upgradeChannelDefaults(saved, defaults) {
   if (saved.version === 2) {
     const next = validateConfig(saved);
     if (next.lineupRevision >= defaults.lineupRevision) return next;
+    if (defaults.lineupRevision >= 3) {
+      const replacements = new Set(Array.from({ length: 11 }, (_, index) => index + 4));
+      for (const candidate of defaults.channels) {
+        const existing = next.channels.find(channel => channel.id === candidate.id);
+        if (replacements.has(candidate.id)) {
+          const replacement = clone(candidate);
+          if (existing) {
+            replacement.order = existing.order;
+            replacement.enabled = existing.enabled;
+            next.channels[next.channels.indexOf(existing)] = replacement;
+          } else next.channels.push(replacement);
+        } else if (candidate.id >= 1 && candidate.id <= 3 && existing) {
+          existing.sources.forEach(source => {
+            if (['youtube_playlist', 'youtube_queue'].includes(source.type)) source.shuffleEachLaunch = true;
+          });
+        }
+      }
+      next.lineupRevision = defaults.lineupRevision;
+      return validateConfig(next);
+    }
     // Add only channels introduced by this lineup revision. Existing edits and deletions
     // remain untouched, including custom channels using our proposed numbers.
     const used = new Set(next.channels.map(c => c.id));

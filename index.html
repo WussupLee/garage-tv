@@ -68,6 +68,7 @@
         <label>Source label<input id="source-name" maxlength="80"></label>
         <label id="source-url-label">Source URL or playlist ID<input id="channel-playlist" type="text" autocomplete="off"></label>
         <label class="check"><input id="source-enabled" type="checkbox"> Source enabled</label>
+        <label id="shuffle-setting" class="check"><input id="source-shuffle" type="checkbox"> Shuffle with a new order each time Garage TV opens</label>
         <div id="youtube-settings">
           <label>Optional virtual schedule JSON<textarea id="channel-schedule" rows="4" spellcheck="false" placeholder="Leave empty for continuous playlist playback"></textarea></label>
           <p class="muted">Schedule requires verified durations in seconds, an ISO epoch, and video IDs. See the repository’s schedule documentation. Playlist mode does not advance while away.</p>
@@ -97,6 +98,9 @@
       <p class="muted">The test uses Google’s documented sample video, not your channel programming. Tune a channel to leave the test.</p><h2>Recent events</h2><pre id="event-log"></pre>
       <h2>Channel compatibility</h2><p class="muted">Test tunes an internal source. External destinations are reported as links and are never played inside Garage TV by this test. Desktop results do not prove Xbox compatibility.</p><div id="compatibility-list"></div>
     </section>
+    <nav id="quick-controls" class="quick-controls" aria-label="Channel controls" hidden>
+      <button id="quick-channel-down" type="button" aria-label="Previous channel">CH −</button><button id="quick-guide" type="button">GUIDE</button><button id="quick-channel-up" type="button" aria-label="Next channel">CH +</button><button id="quick-player" type="button" aria-pressed="false">PLAYER</button>
+    </nav>
   <footer id="controls" class="panel controls" aria-label="Television controls" hidden>
     <button id="channel-down" type="button">CH −</button><button id="channel-up" type="button">CH +</button><button id="toggle-guide" type="button">Guide</button><button id="toggle-fullscreen" type="button">FULL SCREEN</button><button id="toggle-play" type="button">Play / Pause</button><button id="toggle-mute" type="button">Mute</button><button id="skip-video" type="button">Next video</button><button id="next-source" type="button">Next source</button><button id="open-settings" type="button">Settings</button><button id="open-diagnostics" type="button">Diagnostics</button><button type="button" data-close>Close</button>
   </footer>

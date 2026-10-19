@@ -33,6 +33,14 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     assert.equal(await page.locator('.guide-row').count(), 15);
     assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'), '1');
+    assert.equal(await page.locator('#quick-controls').isVisible(), true);
+    assert.equal(await page.locator('#player').getAttribute('tabindex'), '-1');
+    assert.equal(await page.locator('#app').getAttribute('data-player-input'), 'tv');
+    await page.locator('#quick-player').click();
+    assert.equal(await page.locator('#app').getAttribute('data-player-input'), 'player');
+    assert.equal(await page.locator('#quick-player').textContent(), 'TV CONTROLS');
+    await page.locator('#quick-player').click();
+    assert.equal(await page.locator('#app').getAttribute('data-player-input'), 'tv');
     await page.screenshot({ path: 'test-results/multi-source-channel-switch.png' });
     await page.keyboard.press('g');
     const before = await page.evaluate(() => window.__calls.length);
@@ -45,11 +53,16 @@ async function main() {
     await page.keyboard.press('g');
     for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
-    await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'directory');
-    assert.equal(await page.locator('.service-link').first().getAttribute('href'), 'https://00s.theretrotvs.com/');
-    assert.equal(await page.locator('#live-sports-frame').isVisible(), false);
-    await page.keyboard.press('g');
+    await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'), '4');
+    assert.equal(await page.locator('#live-sports-frame').isVisible(), false);
+    assert.equal(page.url(), 'http://127.0.0.1:4173/garage-tv/');
+    assert.equal(await page.evaluate(() => window.__maxActive), 1);
+    await page.locator('#quick-channel-up').click();
+    await page.waitForFunction(() => document.querySelector('.is-tuned')?.dataset.channel === '5' && document.querySelector('#app').dataset.mode === 'playing');
+    assert.equal(await page.locator('#quick-controls').isVisible(), true);
+    await page.keyboard.press('g');
+    assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'), '5');
     await page.keyboard.press('Escape');
     await page.keyboard.press('s');
     await page.locator('#channel-select').selectOption('11');
@@ -73,17 +86,28 @@ async function main() {
     assert.equal(await page.locator('#native-audio').evaluate(node => node.paused), false);
     await page.keyboard.press('d');
     assert.equal(await page.locator('.compatibility-row').count(), 15);
-    assert.match(await page.locator('.compatibility-row').nth(10).textContent(), /opens provider/i);
+    assert.match(await page.locator('.compatibility-row').nth(0).textContent(), /opens provider/i);
     const audioDiagnostic = await page.locator('.compatibility-row').nth(11).textContent();
     assert.match(audioDiagnostic, /startup: \d+ ms/i);
     const fixtureLatency = Number(audioDiagnostic.match(/startup: (\d+) ms/i)[1]);
     await page.locator('#diagnostics [data-close]').click();
+    await page.evaluate(() => { Math.random = () => 0.999; });
     await page.keyboard.press('g');
     await page.locator('.guide-row[data-channel="12"]').click();
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     assert.equal(await page.evaluate(() => window.__active.video), 'WitAjwWY6EQ');
+    assert.equal(await page.locator('iframe#player').count(), 1);
     assert.match(await page.locator('.guide-row[data-channel="12"]').getAttribute('aria-label'), /Texas vs USC/);
     await page.screenshot({ path: 'test-results/classic-football-switch.png' });
+    const footballCycle = [await page.evaluate(() => window.__active.video)];
+    for (let index = 1; index < 8; index++) {
+      await page.evaluate(() => document.querySelector('#skip-video').click());
+      footballCycle.push(await page.evaluate(() => window.__active.video));
+    }
+    assert.equal(new Set(footballCycle).size, 8);
+    const cycleTail = footballCycle.at(-1);
+    await page.evaluate(() => document.querySelector('#skip-video').click());
+    assert.notEqual(await page.evaluate(() => window.__active.video), cycleTail);
     await page.evaluate(() => { window.__active.seconds = 42; });
     await page.keyboard.press('g');
     await page.screenshot({ path: 'test-results/classic-sports-guide.png' });
@@ -91,6 +115,11 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     assert.equal(await page.evaluate(() => window.__active.video), 'EoVTttvKfRs');
     assert.equal(await page.evaluate(() => window.__maxActive), 1);
+    assert.equal(await page.locator('iframe#player').count(), 1);
+    const currentBasketball = await page.evaluate(() => window.__active.video);
+    await page.evaluate(oldVideo => { window.__active.video = oldVideo; window.__active.emit('onStateChange', 1); }, cycleTail);
+    assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'), '13');
+    await page.evaluate(video => { window.__active.video = video; }, currentBasketball);
     await page.keyboard.press('g');
     await page.locator('.guide-row[data-channel="14"]').click();
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
@@ -101,7 +130,9 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     assert.equal(await page.evaluate(() => window.__calls.at(-1).startSeconds), 42);
     assert.deepEqual(errors, []);
-    console.log('PASS: 15-channel guide, classic football/basketball/Futbol queues, one YouTube player, focus without retune, external directory, native audio fixture (' + fixtureLatency + ' ms), settings, storage and diagnostics.');
+    const internalTypes = await page.evaluate(() => JSON.parse(localStorage.getItem('garage-tv.config.v2')).channels.filter(c => c.id > 0).map(c => c.sources[0].type));
+    assert.ok(internalTypes.every(type => type === 'youtube_playlist' || type === 'youtube_queue' || type === 'audio_stream'));
+    console.log('PASS: seamless embedded lineup, session queues, persistent TV controls, one reused YouTube player, guide focus without retune, native audio fixture (' + fixtureLatency + ' ms), settings and diagnostics.');
   } finally {
     if (browser) await browser.close();
     server.kill();

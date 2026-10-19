@@ -1,65 +1,67 @@
 # Garage TV
 
-Garage TV is a static television interface for Microsoft Edge on Xbox One. It keeps the approved Local Station black-and-white presentation and a 1280 × 720 stage. The project is published through GitHub Pages at https://wussuplee.github.io/garage-tv/; the short link is https://zip1.io/garagetvlee.
+Garage TV is a static, controller-first television interface for Microsoft Edge on Xbox One. It keeps the approved Local Station black-and-white presentation and a 1280 × 720 stage. It is published at https://wussuplee.github.io/garage-tv/ with the short link https://zip1.io/garagetvlee.
 
-## Current channels
+## Embedded lineup
 
-| Channel | Source | Status |
-| --- | --- | --- |
-| 000 LIVE SPORTS | Saved external destinations | Configure your own HTTPS links |
-| 001 SPORTS CLASSICS | YouTube playlist | Desktop playlist integration; Xbox untested |
-| 002 INDIE / POP | YouTube playlist | Desktop playlist integration; Xbox untested |
-| 003 RAP / R&B | YouTube playlist | Desktop playlist integration; Xbox untested |
-| 004 RETRO TV | 2000s Retro TV website; Nostalgia playlist alternate | External link; alternate playlist |
-| 005 90s TV | 1990s Retro TV website | External link |
-| 006 VEVO 2K | Pluto TV page | External link; Xbox playback untested |
-| 007 MUSIC TV | XITE website | External link; Xbox player unverified |
-| 008 LATE NIGHT | Adult Swim Off the Air; YouTube alternate | External link; alternate playlist |
-| 009 INDIE ARCHIVE | altmusictv.com | External archive |
-| 010 GARAGE RADIO | SomaFM listening pages | External links; see provider terms |
-| 011 PUBLIC TV | User-configured HLS | Empty until a suitable authorized stream is verified |
-| 012 FOOTBALL | Curated YouTube queue; NFL archive alternate | College classics played in desktop Edge; official NFL videos blocked embedding |
-| 013 BASKETBALL | Curated YouTube queue; NBA archive alternate | ESPN full game and highlights played in desktop Edge |
-| 014 FUTBOL | Curated YouTube queue; FIFA+ archive alternate | Classic club highlights played in desktop Edge; FIFA videos blocked embedding |
+Channel 000 LIVE SPORTS is the only external destination. Channels 001–014 remain inside Garage TV and use one reused YouTube IFrame player.
 
-External links open in the same tab. Edge Back returns to Garage TV. They do not become embeddable streams merely because the landing page loads. Garage TV cannot control provider ads, playback, or controller focus after navigation.
+| Channel | Source | Verified rotation |
+| --- | --- | ---: |
+| 000 LIVE SPORTS | User-configured external HTTPS destinations | External exception |
+| 001 SPORTS CLASSICS | Supplied YouTube playlist snapshot | 1 currently embeddable item |
+| 002 INDIE / POP | Supplied YouTube playlist snapshot | 13 items |
+| 003 RAP / R&B | Supplied YouTube playlist snapshot | 2 items |
+| 004 NOSTALGIA | Supplied YouTube playlist snapshot | 2 items |
+| 005 90s MUSIC | Official KEXP sessions | 20 items |
+| 006 Y2K HITS | Official KEXP sessions | 20 items |
+| 007 ROCK / PUNK | Official KEXP and Audiotree sessions | 20 items |
+| 008 OFF THE AIR | Official Adult Swim playlist snapshot | 60 items |
+| 009 ELECTRONIC | Official KEXP and Cercle sessions | 20 items |
+| 010 SOUL / FUNK | Official KEXP and COLORS sessions | 20 items |
+| 011 SPACE TV | Official NASA videos | 20 items |
+| 012 FOOTBALL | Verified official YouTube queue | 8 items |
+| 013 BASKETBALL | Verified official YouTube queue | 8 items |
+| 014 FUTBOL | Verified official YouTube queue | 8 items |
 
-The YouTube playlists and snapshot entries from the previous release remain available. The sports queues use official publisher videos that reached `PLAYING` in desktop Edge on October 19, 2026. They play in order, loop, and resume a saved position. They are continuous rotations, not synchronized broadcasts. YouTube controls advertising and embedding permission. The app neither bypasses ads nor restarts playback when opening the guide. Saved live-sports links from older browser settings are preserved.
+The October 19, 2026 desktop Edge probe required every bundled snapshot and queue item to reach the IFrame API PLAYING event. Entries returning embed error 150 were removed. Provider permissions can change after deployment, and desktop results do not establish Xbox compatibility.
 
-SomaFM publishes direct radio URLs, but its terms prohibit third-party embedding without prior permission. The default station therefore links to its official listening pages. Native audio is available for user-provided streams whose terms allow this use. PUBLIC TV remains a placeholder because no IPTV candidate has been verified for authorization, CORS, codec, and live playback.
+Every bundled YouTube source shuffles once per page launch. Its order remains stable during that session, every item is used before the next cycle, and the next launch avoids starting on the previous launch item when alternatives exist. Returning to a channel in the same session resumes its current item and timestamp. Custom ordered channels continue to use persistent bookmarks when shuffle is disabled.
 
-## Architecture
+## Playback architecture
 
-Default channels live in data/default-config.json. Each channel has a number, order, title, description, enabled flag, multiple sources, and an active source. Supported types are youtube_playlist, youtube_queue, hls_stream, audio_stream, external_site, and local_media. See docs/MULTISOURCE.md for the schema and verification matrix.
+Default content lives in data/default-config.json; supplied playlist snapshots live in data/playlist-snapshots.json. src/player.js owns the one YouTube IFrame player and reuses it across YouTube channel changes. Each request has a generation token, so an earlier callback cannot restart a stale channel. Only one stream is active and adjacent channels are not preloaded.
 
-src/player.js owns the single YouTube IFrame player. src/native-media.js reuses one video and one audio element, chooses native HLS when available, and loads HLS.js only when necessary. src/external-site.js provides same-tab destinations. src/local-media.js keeps selected files in memory for the current session. src/presentation.js handles request-scoped tuning, buffering, failures, and the three-second channel label. New channel requests stop prior media and invalidate stale callbacks. There is no backend or proxy.
+The app shows TUNING immediately, uncovers video only after the real PLAYING event, delays BUFFERING for 500 ms, and preserves unavailable and blocked-autoplay recovery. Opening the guide does not stop playback. Guide focus and the ON marker are separate; browsing does not retune until confirmation.
 
-Settings can add, remove, rename, reorder, enable, and disable channels; edit or select sources and video queues; choose local files; and import/export JSON. Settings are stored in localStorage under garage-tv.config.v2, separately in each browser. Existing v2 settings receive channels 012–014 once without replacing edits or re-adding subsequently removed channels. Older v1 settings also migrate. Source URLs require HTTPS; HLS entries require an m3u8 URL. The diagnostics panel shows each channel’s source, type, browser capability, observed startup time, interaction requirement, and status. A desktop result is never an Xbox compatibility claim.
+Settings supports channel editing, reordering, enable/disable, source type, shuffleEachLaunch, JSON import/export, and browser-local storage. Existing settings migrate to lineup revision 3 while preserving LIVE SPORTS destinations, unrelated custom channels, enabled states, ordering, and service links.
 
 ## Controls
 
-| Action | Keyboard | Proposed Xbox mapping |
+A persistent playback strip keeps CH −, GUIDE, CH +, and PLAYER above the iframe. Garage TV owns pointer and controller input during ordinary viewing. PLAYER enables native YouTube controls; the always-visible TV CONTROLS button returns input to Garage TV.
+
+| Action | Keyboard | Xbox mapping |
 | --- | --- | --- |
-| Surf channels | Up/Down or [ / ] | D-pad Up/Down or bumpers |
-| Guide | G | Y or B |
+| Channel down/up | Up/Down or [ / ] | D-pad Up/Down or bumpers |
+| Open/close guide | G / Esc | Y or B |
 | Confirm / retry | Enter | A |
-| Close guide | Esc | B |
-| Settings | S | Menu |
+| Settings | S | Menu when Edge exposes it |
 | Fullscreen | F or on-screen button | On-screen button |
 | Diagnostics | D | Settings panel |
 | Mute / play | M / Space | Controls panel |
 
-Edge may reserve controller buttons. The physical Xbox checklist is in docs/MULTISOURCE.md. Guide focus is separate from the ON marker; moving focus never tunes. External channels show OPEN PROVIDER and no invented program schedule.
+Edge may reserve controller buttons. See docs/XBOX-TESTING.md for the physical console checklist.
 
 ## Run and verify
 
-Use a local HTTP server; opening index.html directly does not provide the origin needed by modules and YouTube.
+Use a local HTTP server; opening index.html directly does not provide the origin required by modules and YouTube.
 
-1. Run npm run build and npm run serve with Node.js.
-2. Open http://localhost:4173/garage-tv/ in Edge.
-3. Run npm test for unit checks.
-4. Install the optional Playwright development dependency and run npm run test:browser for controlled desktop Edge checks.
+1. npm install
+2. npm test
+3. npm run build
+4. npm run serve
+5. Open http://localhost:4173/garage-tv/
 
-The GitHub Actions workflow builds dist/ and deploys it to Pages on pushes to main. The controlled browser suite uses a synthetic audio fixture and mocked YouTube events. Optional `node tests/live-sports.cjs` and `node tests/probe-youtube.cjs <video IDs>` checks use the real YouTube IFrame API in desktop Edge. Screenshots are written to test-results/.
+The GitHub Actions workflow builds dist/ and deploys it to Pages on pushes to main. The controlled Edge suite uses mocked YouTube events. node tests/probe-youtube.cjs --all uses the real YouTube IFrame API and is network and provider dependent. Screenshots are written to test-results/.
 
-Visual assets and dimensions follow docs/LOCAL-STATION-DESIGN.md. The historical reference photograph is not production content.
+YouTube controls advertising, autoplay, and embed permission. Garage TV does not bypass ads or provider protections. The historical design reference photograph is not production content.

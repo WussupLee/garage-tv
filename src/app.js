@@ -1,4 +1,4 @@
-import { CONFIG_KEY, LEGACY_CONFIG_KEY, BOOKMARK_KEY, SOURCE_TYPES, activeSource, upgradeChannelDefaults, clone, validateConfig, startupChannel, configured, readStorage, writeStorage } from './config.js';
+import { CONFIG_KEY, LEGACY_CONFIG_KEY, BOOKMARK_KEY, LAST_START_KEY, SOURCE_TYPES, activeSource, upgradeChannelDefaults, clone, validateConfig, startupChannel, configured, readStorage, writeStorage, shuffledQueue } from './config.js';
 import { broadcastAt, orderedPrograms } from './schedule.js';
 import { TelevisionPlayer } from './player.js';
 import { GamepadInput, keyboardInput, moveFocus } from './input.js';
@@ -20,6 +20,10 @@ let tuneStartedAt = 0;
 let queueErrors = 0;
 let bookmarks = readStorage(BOOKMARK_KEY, {});
 if (!bookmarks || typeof bookmarks !== 'object' || Array.isArray(bookmarks)) bookmarks = {};
+let lastStarts = readStorage(LAST_START_KEY, {});
+if (!lastStarts || typeof lastStarts !== 'object' || Array.isArray(lastStarts)) lastStarts = {};
+const sessionQueues = new Map();
+const sessionMarks = new Map();
 const events = [];
 function log(message) {
   events.unshift(new Date().toLocaleTimeString() + ' ' + message);
@@ -31,7 +35,38 @@ function textElement(tag, text, className) { const e = document.createElement(ta
 function channel() { return config && config.channels.find(c => c.id === tuned); }
 function source() { return activeSource(channel()); }
 function youtubeSource() { return ['youtube_playlist', 'youtube_queue'].includes(source()?.type); }
-function queueKey(c) { return 'queue:' + c.id + ':' + activeSource(c).items.map(item => item.videoId).join(','); }
+function queueKey(c) {
+  const item = activeSource(c);
+  return item.type === 'youtube_queue' ? 'queue:' + c.id + ':' + item.items.map(video => video.videoId).join(',') : 'playlist:' + item.url;
+}
+function sourceItems(c) {
+  const item = activeSource(c);
+  if (item.type === 'youtube_queue') return item.items;
+  return playlistSnapshots[item.url]?.videos || [];
+}
+function playbackKey(c) { return sourceItems(c).length ? queueKey(c) : activeSource(c).url; }
+function prepareQueue(c, { renew = false, recordStart = false } = {}) {
+  const item = activeSource(c);
+  const key = playbackKey(c);
+  if (!renew && sessionQueues.has(key)) return sessionQueues.get(key);
+  const base = sourceItems(c);
+  const avoid = renew ? player.snapshot().videoId : lastStarts[key];
+  const queue = item.shuffleEachLaunch ? shuffledQueue(base, Math.random, avoid) : base.map(entry => ({ ...entry }));
+  sessionQueues.set(key, queue);
+  if (recordStart && item.shuffleEachLaunch && queue[0]) {
+    lastStarts[key] = queue[0].videoId;
+    try { writeStorage(LAST_START_KEY, lastStarts); } catch (error) { log(error.message); }
+  }
+  return queue;
+}
+function setPlayerInteraction(enabled) {
+  const active = !!enabled && youtubeSource();
+  $('app').dataset.playerInput = active ? 'player' : 'tv';
+  $('quick-player').textContent = active ? 'TV CONTROLS' : 'PLAYER';
+  $('quick-player').setAttribute('aria-pressed', String(active));
+  player.setInteractive(active);
+  if (!active) $('app').focus({ preventScroll: true });
+}
 function zliveService() { return config?.services.find(service => { try { return new URL(service.url).hostname === 'zlive.st'; } catch (_) { return false; } }); }
 function scheduleNow(c = channel()) { return c && c.sourceType === 'youtube_playlist' && !degraded && !demo ? broadcastAt(c, config.seed) : null; }
 function scheduleKey(now) { return now.cycle + ':' + now.index; }
@@ -58,6 +93,7 @@ function renderPresentation(s = presentation.state) {
   $('start-playback').setAttribute('aria-label', failed ? 'Retry channel' : 'Start playback');
   $('failure-guide').toggleAttribute('hidden', !failed);
   $('playback-bug').hidden = !!panel || s.mode !== 'playing' || s.osdVisible || c?.sourceType === 'audio_stream';
+  $('quick-controls').hidden = !!panel || ['launch', 'directory'].includes(s.mode);
   $('directory').hidden = s.mode !== 'directory' || !!panel;
   syncDirectoryFrame(s.mode === 'directory');
   if (failed && lastPresentationMode !== 'unavailable') {
@@ -86,7 +122,7 @@ const player = new TelevisionPlayer({
     }
     if (state === 3) presentation.buffering(requestId);
     if (state === 2) presentation.blocked(requestId, true);
-    if (state === 0) { if (player.queue) player.next(); else if (scheduleNow()) loadScheduled(true); }
+    if (state === 0) { if (player.queue) advanceQueue(); else if (scheduleNow()) loadScheduled(true); }
   },
   error: (code, requestId) => {
     if (requestId !== loadVersion) return;
@@ -94,8 +130,9 @@ const player = new TelevisionPlayer({
     const labels = { 2: 'Invalid video parameters', 5: 'HTML5 playback failed', 100: 'Video removed or private', 101: 'Owner blocks embedding', 150: 'Owner blocks embedding', 153: 'YouTube could not verify the playback origin/referrer' };
     const reason = labels[code] || 'YouTube error ' + code;
     log(reason);
-    if (source()?.type === 'youtube_queue' && ++queueErrors < source().items.length) {
-      log('Skipping unavailable queue item.'); player.next(); refreshGuide(); return;
+    const queueLength = sourceItems(channel()).length;
+    if (youtubeSource() && queueLength && ++queueErrors < queueLength) {
+      log('Skipping unavailable queue item.'); advanceQueue(); refreshGuide(); return;
     }
     presentation.unavailable(requestId);
   }
@@ -140,6 +177,8 @@ function renderCompatibility() {
         ' · Autoplay: ' + (result.status === 'requires_interaction' ? 'interaction required' : result.status === 'desktop_playing' ? 'started in this browser' : 'untested'),
       'Startup: ' + (result.startupMs === undefined ? 'unmeasured' : result.startupMs + ' ms') +
         ' · Iframe: ' + (['youtube_playlist', 'youtube_queue'].includes(item.type) ? 'YouTube controlled' : item.type === 'external_site' ? 'not used' : 'not applicable'),
+      'Queue: ' + (['youtube_playlist', 'youtube_queue'].includes(item.type) ? sourceItems(c).length + ' items · shuffle each launch ' + (item.shuffleEachLaunch ? 'on' : 'off') : 'not applicable'),
+      'Player instances: ' + player.createCount + ' · reused switches: ' + player.reuseCount,
       'Channel switch: ' + (item.type === 'external_site' ? 'leaves Garage TV' : 'inside Garage TV') +
         (result.detail ? ' · ' + result.detail : '')
     ];
@@ -163,7 +202,7 @@ function modeLabel() {
   if (source()?.type === 'local_media') return 'Local files · choose files again after reloading';
   if (!configured(channel())) return 'Source missing · configure in Settings';
   if (source()?.type === 'hls_stream' || source()?.type === 'audio_stream') return 'Continuous stream · provider controls its programming';
-  if (source()?.type === 'youtube_queue') return 'Classic rotation · saved position · official YouTube footage';
+  if (source()?.type === 'youtube_queue') return source().shuffleEachLaunch ? 'Shuffled rotation · session position · official YouTube footage' : 'Continuous rotation · saved position · official YouTube footage';
   if (degraded) return 'Continuous playback · virtual sync suspended for this tune';
   return scheduleNow() ? 'Virtual schedule · experimental · verified durations required' : 'Continuous playlist · resumes saved position · does not advance while away';
 }
@@ -171,10 +210,14 @@ function modeLabel() {
 function remember() {
   const c = channel();
   if (!c || !['youtube_playlist', 'youtube_queue'].includes(c.sourceType) || c.schedule || demo || !player.ready) return;
-  const key = c.sourceType === 'youtube_queue' ? queueKey(c) : c.playlist;
+  const key = playbackKey(c);
   if (player.activePlaylist !== key) return;
   const snapshot = player.snapshot();
   if (!snapshot.videoId) return;
+  if (activeSource(c).shuffleEachLaunch) {
+    sessionMarks.set(key, { playlist: key, videoId: snapshot.videoId, seconds: snapshot.seconds });
+    return;
+  }
   bookmarks[c.id] = { playlist: key, index: snapshot.index, seconds: snapshot.seconds };
   try { writeStorage(BOOKMARK_KEY, bookmarks); } catch (error) { log(error.message); }
 }
@@ -187,7 +230,8 @@ async function tune(id) {
   tuneStartedAt = performance.now();
   tuned = id; selected = id; scheduledKey = ''; degraded = false; demo = false; queueErrors = 0;
   const selectedSource = activeSource(c);
-  player.beginRequest(version, selectedSource.type === 'youtube_queue');
+  setPlayerInteraction(false);
+  player.beginRequest(version, ['youtube_playlist', 'youtube_queue'].includes(selectedSource.type));
   native.beginRequest();
   presentation.request(version, id);
   renderDirectory(); log('Requested ' + number(id) + ' ' + c.title);
@@ -209,14 +253,17 @@ async function tune(id) {
     return;
   }
   try {
-    const videos = selectedSource.type === 'youtube_queue' ? selectedSource.items.map(item => item.videoId) : playlistSnapshots[c.playlist]?.videos?.map(item => item.videoId);
+    const queue = prepareQueue(c, { recordStart: true });
+    const videos = queue.map(item => item.videoId);
     await player.ensure(c.schedule ? { videoId: scheduleNow(c).program.videoId } : videos?.length ? { videoId: videos[0] } : { playlist: c.playlist });
     if (version !== loadVersion || presentation.state.mode === 'unavailable') return;
     if (c.schedule) loadScheduled(true);
     else {
-      const key = selectedSource.type === 'youtube_queue' ? queueKey(c) : c.playlist;
-      const mark = bookmarks[id];
-      player.playlist(key, mark && mark.playlist === key ? mark : {}, videos);
+      const key = playbackKey(c);
+      const saved = selectedSource.shuffleEachLaunch ? sessionMarks.get(key) : bookmarks[id];
+      const mark = saved && saved.playlist === key ? { ...saved } : {};
+      if (selectedSource.shuffleEachLaunch && mark.videoId) mark.index = videos.indexOf(mark.videoId);
+      player.playlist(key, mark.index >= 0 ? mark : {}, videos);
     }
     // Some embeds cue the video without emitting PLAYING or onAutoplayBlocked.
     // Make the existing A start action available instead of waiting on black.
@@ -229,6 +276,18 @@ async function tune(id) {
     if (version !== loadVersion) return;
     log(error.message); presentation.unavailable(version);
   }
+}
+
+function advanceQueue() {
+  const c = channel();
+  if (!c || !player.queue) return;
+  const item = activeSource(c);
+  const wrapped = player.queueIndex + 1 >= player.queue.length;
+  if (wrapped && item.shuffleEachLaunch) {
+    const queue = prepareQueue(c, { renew: true });
+    player.next(queue.map(entry => entry.videoId));
+  } else player.next();
+  refreshGuide();
 }
 
 function loadScheduled(force = false) {
@@ -253,7 +312,7 @@ function skip() {
     degraded = true; player.video(programs[(index + 1) % programs.length].videoId);
     log('Skipped scheduled video; sync suspended until retune.');
   } else if (demo) { player.start(); }
-  else player.next();
+  else advanceQueue();
   status(modeLabel());
 }
 
@@ -270,10 +329,11 @@ function programInfo(c) {
   if (selectedSource.type === 'external_site') return { now: c.id === 0 ? 'SELECT SERVICE' : 'OPEN PROVIDER', next: '-' };
   if (selectedSource.type === 'audio_stream' || selectedSource.type === 'hls_stream') return { now: selectedSource.name || c.title, next: '-' };
   if (selectedSource.type === 'local_media') return { now: localMedia.current(c.id)?.name || 'SELECT FILES', next: '-' };
-  if (selectedSource.type === 'youtube_queue') {
-    if (c.id !== tuned || !player.ready || player.activePlaylist !== queueKey(c)) return { now: 'CLASSIC ROTATION', next: '-' };
+  if (['youtube_playlist', 'youtube_queue'].includes(selectedSource.type) && !c.schedule && sourceItems(c).length) {
+    if (c.id !== tuned || !player.ready || player.activePlaylist !== playbackKey(c)) return { now: 'SHUFFLED ROTATION', next: '-' };
     const index = player.snapshot().index;
-    return { now: selectedSource.items[index]?.title || 'CLASSIC ROTATION', next: selectedSource.items[(index + 1) % selectedSource.items.length]?.title || '-' };
+    const queue = prepareQueue(c);
+    return { now: queue[index]?.title || 'SHUFFLED ROTATION', next: queue[(index + 1) % queue.length]?.title || '-' };
   }
   const point = broadcastAt(c, config.seed);
   if (point && !(c.id === tuned && degraded)) return { now: point.program.title, next: point.next.title };
@@ -348,7 +408,7 @@ function closePanel() {
 }
 function openPanel(name) {
   if (panel === name) { closePanel(); return; }
-  closePanel(); panel = name;
+  closePanel(); setPlayerInteraction(false); panel = name;
   $(name).hidden = false;
   if (name === 'guide') {
     selected = presentation.state.current ?? tuned; refreshGuide(); $('guide-rows').focus({ preventScroll: true });
@@ -420,6 +480,7 @@ function loadSourceForm() {
   $('channel-schedule').value = item.schedule ? JSON.stringify(item.schedule, null, 2) : '';
   $('channel-queue').value = item.items ? JSON.stringify(item.items, null, 2) : '';
   $('source-enabled').checked = item.enabled;
+  $('source-shuffle').checked = item.shuffleEachLaunch;
   updateSourceFields();
 }
 function updateSourceFields() {
@@ -428,6 +489,7 @@ function updateSourceFields() {
   $('queue-settings').hidden = type !== 'youtube_queue';
   $('local-settings').hidden = type !== 'local_media';
   $('source-url-label').hidden = type === 'local_media' || type === 'youtube_queue';
+  $('shuffle-setting').hidden = !['youtube_playlist', 'youtube_queue'].includes(type);
   $('channel-playlist').placeholder = type === 'youtube_playlist' ? 'https://youtube.com/playlist?list=…' :
     type === 'hls_stream' ? 'https://example.com/live.m3u8' : 'https://example.com/';
 }
@@ -520,6 +582,10 @@ function togglePlay() {
 
 $('channel-down').onclick = () => changeChannel(-1); $('channel-up').onclick = () => changeChannel(1);
 $('toggle-guide').onclick = () => openPanel('guide');
+$('quick-channel-down').onclick = () => changeChannel(-1);
+$('quick-channel-up').onclick = () => changeChannel(1);
+$('quick-guide').onclick = () => openPanel('guide');
+$('quick-player').onclick = () => setPlayerInteraction($('app').dataset.playerInput !== 'player');
 $('open-settings').onclick = $('edit-services').onclick = () => openPanel('settings');
 $('open-diagnostics').onclick = () => openPanel('diagnostics');
 $('playback-bug').onclick = () => openPanel('controls');
@@ -556,6 +622,7 @@ $('channel-form').onsubmit = event => {
     item.type = $('source-type').value; item.name = $('source-name').value;
     item.url = ['local_media', 'youtube_queue'].includes(item.type) ? '' : $('channel-playlist').value;
     item.enabled = $('source-enabled').checked;
+    item.shuffleEachLaunch = $('source-shuffle').checked;
     item.schedule = item.type !== 'youtube_playlist' || !$('channel-schedule').value.trim() ? null : JSON.parse($('channel-schedule').value);
     item.items = item.type === 'youtube_queue' ? JSON.parse($('channel-queue').value) : null;
     item.verification = 'untested';

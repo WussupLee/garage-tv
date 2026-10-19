@@ -16,11 +16,12 @@ function loadAPI() {
 }
 
 export class TelevisionPlayer {
-  constructor(handlers) { this.handlers = handlers; this.player = null; this.initializing = null; this.muted = false; this.generation = 0; this.requestId = 0; }
+  constructor(handlers) { this.handlers = handlers; this.player = null; this.initializing = null; this.muted = false; this.interactive = false; this.generation = 0; this.requestId = 0; this.createCount = 0; this.reuseCount = 0; }
   beginRequest(requestId, reuse = false) {
     // Invalidate first: destroying an iframe may itself dispatch a final event.
     this.requestId = requestId;
     if (reuse && this.player && this.ready) {
+      this.reuseCount++;
       this.expectedVideo = '__switching__'; this.activePlaylist = null; this.queue = null; this.queueIndex = 0;
       this.player.stopVideo();
       return;
@@ -47,6 +48,7 @@ export class TelevisionPlayer {
       const timer = setTimeout(() => reject(new Error('YouTube player did not become ready. Retry playback.')), 15000);
       this.cancelCreate = () => { clearTimeout(timer); resolve(); };
       const current = event => generation === this.generation && (!event.target || event.target === this.player);
+      this.createCount++;
       this.player = new window.YT.Player('player', {
         width: '100%', height: '100%',
         videoId: source.playlist ? 'videoseries' : source.videoId,
@@ -58,6 +60,7 @@ export class TelevisionPlayer {
             const iframe = this.player.getIframe();
             iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
             iframe.setAttribute('title', 'YouTube television player');
+            this.applyInteraction();
             this.applyAudio(); resolve();
           },
           onStateChange: event => {
@@ -74,6 +77,13 @@ export class TelevisionPlayer {
     });
   }
   applyAudio() { if (this.ready) { this.player.setVolume(100); this.muted ? this.player.mute() : this.player.unMute(); } }
+  applyInteraction() {
+    if (!this.player?.getIframe) return;
+    const iframe = this.player.getIframe();
+    iframe.tabIndex = this.interactive ? 0 : -1;
+    iframe.setAttribute('aria-hidden', this.interactive ? 'false' : 'true');
+  }
+  setInteractive(value) { this.interactive = !!value; this.applyInteraction(); }
   playlist(id, bookmark = {}, videos) {
     this.activePlaylist = id; this.expectedVideo = null;
     this.player.setLoop(true);
@@ -93,10 +103,12 @@ export class TelevisionPlayer {
   toggle() { if (this.ready) this.player.getPlayerState() === 1 ? this.player.pauseVideo() : this.start(); }
   stop() { if (this.ready) this.player.stopVideo(); }
   mute() { this.muted = !this.muted; this.applyAudio(); return this.muted; }
-  next() {
+  next(nextQueue) {
     if (!this.ready) return;
     if (!this.queue) { this.player.nextVideo(); return; }
-    this.queueIndex = (this.queueIndex + 1) % this.queue.length;
+    const wrapped = this.queueIndex + 1 >= this.queue.length;
+    if (wrapped && nextQueue?.length) { this.queue = nextQueue; this.queueIndex = 0; }
+    else this.queueIndex = (this.queueIndex + 1) % this.queue.length;
     this.expectedVideo = this.queue[this.queueIndex];
     this.player.loadVideoById({ videoId: this.expectedVideo, startSeconds: 0 }); this.applyAudio();
   }

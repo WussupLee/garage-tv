@@ -9,6 +9,7 @@ html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background:
 .stage, #video-cover, .artwork, .guide { position: absolute; inset: 0; width: 1280px; height: 720px; }
 .stage { z-index: 0; background: #000; }
 #player { display: block; width: 100%; height: 100%; border: 0; }
+#app[data-player-input="tv"] #player iframe { pointer-events: none; }
 #native-video { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; object-fit: contain; }
 #video-cover { z-index: 1; background: #000; pointer-events: none; }
 .artwork { display: block; pointer-events: none; }
@@ -40,6 +41,9 @@ p { line-height: 1.45; margin: 12px 0 20px; }
 .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 20px; }
 .panel-heading h1 { margin: 0; }
 .controls { top: auto; bottom: 54px; height: auto; display: flex; flex-wrap: wrap; gap: 12px; }
+.quick-controls { position: absolute; left: 64px; bottom: 54px; z-index: 8; display: flex; background: #000; }
+.quick-controls button { min-height: 44px; padding: 7px 11px; border-right: 0; font-size: 18px; }
+.quick-controls button:last-child { border-right: 1px solid #fff; }
 .directory { position: absolute; inset: 0; width: 1280px; height: 720px; z-index: 2; overflow: hidden; background: #000; }
 #live-sports-frame { display: block; width: 1280px; height: 720px; border: 0; background: #000; }
 #external-note { position: absolute; left: 82px; top: 245px; width: 900px; padding: 0; margin: 0; background: #000; font-size: 22px; }
