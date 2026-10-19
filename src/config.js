@@ -1,7 +1,7 @@
 export const CONFIG_KEY = 'garage-tv.config.v2';
 export const LEGACY_CONFIG_KEY = 'garage-tv.config.v1';
 export const BOOKMARK_KEY = 'garage-tv.bookmarks.v1';
-export const SOURCE_TYPES = ['youtube_playlist', 'hls_stream', 'audio_stream', 'external_site', 'local_media'];
+export const SOURCE_TYPES = ['youtube_playlist', 'youtube_queue', 'hls_stream', 'audio_stream', 'external_site', 'local_media'];
 export const clone = value => JSON.parse(JSON.stringify(value));
 
 export function playlistId(value) {
@@ -47,16 +47,31 @@ function validateSchedule(value) {
   };
 }
 
+function validateQueue(value) {
+  if (!Array.isArray(value) || !value.length || value.length > 100) throw new Error('A video queue needs 1–100 items.');
+  const ids = new Set();
+  return value.map((item, index) => {
+    if (!item || !/^[A-Za-z0-9_-]{11}$/.test(item.videoId) || ids.has(item.videoId)) throw new Error('Queue item ' + (index + 1) + ' needs a unique YouTube video ID.');
+    ids.add(item.videoId);
+    const kind = ['full', 'partial', 'highlights'].includes(item.kind) ? item.kind : 'highlights';
+    const year = Number(item.year);
+    if (!Number.isInteger(year) || year < 1900 || year > 2100) throw new Error('Queue item ' + (index + 1) + ' needs a year.');
+    return { videoId: item.videoId, title: text(item.title, 'Queue title'), provider: text(item.provider, 'Queue provider', 80), year, kind };
+  });
+}
+
 function normalizeSource(raw) {
   if (!raw || !SOURCE_TYPES.includes(raw.type)) throw new Error('Choose a supported source type.');
   const type = raw.type;
   const url = type === 'youtube_playlist' ? playlistId(raw.url || raw.playlist || '') :
+    type === 'youtube_queue' ? '' :
     type === 'local_media' ? '' : raw.url ? serviceUrl(raw.url) : '';
   if (type === 'hls_stream' && url && !/\.m3u8(?:$|[?#])/i.test(url)) throw new Error('HLS sources need an HTTPS .m3u8 URL.');
   const schedule = type === 'youtube_playlist' ? validateSchedule(raw.schedule) : null;
+  const items = type === 'youtube_queue' ? validateQueue(raw.items) : null;
   return {
     type, name: typeof raw.name === 'string' ? raw.name.slice(0, 80).trim() : '',
-    url, schedule, enabled: raw.enabled !== false,
+    url, schedule, items, enabled: raw.enabled !== false,
     verification: ['desktop_playing', 'requires_interaction', 'opens_externally', 'unsupported', 'untested'].includes(raw.verification) ? raw.verification : 'untested',
     capabilities: {
       embed: type !== 'external_site',
@@ -94,16 +109,16 @@ export function validateConfig(value) {
   if (!channels.some(c => c.enabled)) throw new Error('Enable at least one channel.');
   if (!Array.isArray(value.services) || value.services.length > 100) throw new Error('Services must be a list of at most 100 links.');
   const services = value.services.map((s, index) => ({ id: 'service-' + index, name: text(s.name, 'Service name', 80), url: serviceUrl(s.url) }));
-  return { version: 2, seed: text(value.seed, 'Schedule seed', 80), channels, services };
+  return { version: 2, lineupRevision: Number.isInteger(value.lineupRevision) ? value.lineupRevision : 1, seed: text(value.seed, 'Schedule seed', 80), channels, services };
 }
 
 export function configured(channel) {
   const source = activeSource(channel);
-  return !!channel?.enabled && !!source?.enabled && (source.type === 'local_media' || !!source.url);
+  return !!channel?.enabled && !!source?.enabled && (source.type === 'local_media' || source.type === 'youtube_queue' && !!source.items?.length || !!source.url);
 }
 
 export function startupChannel(channels, random = Math.random) {
-  const candidates = channels.filter(c => c.id !== 0 && configured(c) && ['youtube_playlist', 'hls_stream', 'audio_stream'].includes(activeSource(c).type));
+  const candidates = channels.filter(c => c.id !== 0 && configured(c) && ['youtube_playlist', 'youtube_queue', 'hls_stream', 'audio_stream'].includes(activeSource(c).type));
   return candidates.length ? candidates[Math.floor(random() * candidates.length) % candidates.length] : null;
 }
 
@@ -116,7 +131,25 @@ export function writeStorage(key, value) {
 }
 
 export function upgradeChannelDefaults(saved, defaults) {
-  if (saved.version === 2) return validateConfig(saved);
+  if (saved.version === 2) {
+    const next = validateConfig(saved);
+    if (next.lineupRevision >= defaults.lineupRevision) return next;
+    // Add only channels introduced by this lineup revision. Existing edits and deletions
+    // remain untouched, including custom channels using our proposed numbers.
+    const used = new Set(next.channels.map(c => c.id));
+    let nextOrder = Math.max(...next.channels.map(c => c.order)) + 1;
+    for (const candidate of defaults.channels.filter(c => c.id >= 12 && c.id <= 14)) {
+      const channel = clone(candidate);
+      if (used.has(channel.id)) {
+        channel.id = Array.from({ length: 1000 }, (_, id) => id).find(id => id >= 15 && !used.has(id));
+        if (channel.id === undefined) throw new Error('No channel number is available for the new sports lineup.');
+      }
+      channel.order = nextOrder++;
+      next.channels.push(channel); used.add(channel.id);
+    }
+    next.lineupRevision = defaults.lineupRevision;
+    return validateConfig(next);
+  }
   const old = validateConfig(saved);
   const next = clone(defaults);
   for (const previous of old.channels) {

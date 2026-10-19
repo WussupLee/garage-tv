@@ -64,7 +64,7 @@
         <label class="check"><input id="channel-enabled" type="checkbox"> Enabled</label>
         <label>Source<select id="source-select"></select></label>
         <div class="channel-manage"><button id="add-source" type="button">Add source</button><button id="remove-source" type="button">Remove source</button></div>
-        <label>Source type<select id="source-type"><option value="youtube_playlist">YouTube playlist</option><option value="hls_stream">HLS video</option><option value="audio_stream">Direct audio</option><option value="external_site">External website</option><option value="local_media">Local files</option></select></label>
+        <label>Source type<select id="source-type"><option value="youtube_playlist">YouTube playlist</option><option value="youtube_queue">YouTube video queue</option><option value="hls_stream">HLS video</option><option value="audio_stream">Direct audio</option><option value="external_site">External website</option><option value="local_media">Local files</option></select></label>
         <label>Source label<input id="source-name" maxlength="80"></label>
         <label id="source-url-label">Source URL or playlist ID<input id="channel-playlist" type="text" autocomplete="off"></label>
         <label class="check"><input id="source-enabled" type="checkbox"> Source enabled</label>
@@ -72,6 +72,7 @@
           <label>Optional virtual schedule JSON<textarea id="channel-schedule" rows="4" spellcheck="false" placeholder="Leave empty for continuous playlist playback"></textarea></label>
           <p class="muted">Schedule requires verified durations in seconds, an ISO epoch, and video IDs. See the repository’s schedule documentation. Playlist mode does not advance while away.</p>
         </div>
+        <div id="queue-settings" hidden><label>Video queue JSON<textarea id="channel-queue" rows="8" spellcheck="false" placeholder='[{"videoId":"…","title":"…","provider":"…","year":2006,"kind":"full"}]'></textarea></label><p class="muted">Use official public YouTube videos. Queue order is playback order; kind is full, partial, or highlights. Garage TV does not control ads or embedding permission.</p></div>
         <div id="local-settings" hidden><label>Choose local audio/video files<input id="local-files" type="file" accept="audio/*,video/*" multiple></label><p class="muted">Files stay in this browser session. Choose them again after reloading.</p></div>
         <button type="submit">Save channel</button>
       </form>

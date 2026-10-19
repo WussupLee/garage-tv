@@ -1,5 +1,7 @@
 # Garage TV — handoff to Codex on PC
 
+**Classic sports update, 2026-10-19:** Added 012 FOOTBALL, 013 BASKETBALL, and 014 FUTBOL with an ordered `youtube_queue` source, loop/bookmarks/NOW-NEXT, alternate official archives, and one-time saved-v2 lineup migration. All 24 bundled queue items individually reached YouTube IFrame `PLAYING` in desktop Edge; the three channels also started in a real-network app smoke test. Official NFL, NBA, FIFA, and UEFA candidate videos returned embed error 150, so blocked items were excluded and their official archives are external alternatives. Football's in-app queue currently has college football; the NFL archive is external. See docs/SPORTS-SOURCES.md. Unit and controlled browser checks pass. Xbox One validation and future embedding permission remain open.
+
 **Status update, 2026-10-18:** The local PC upload and GitHub Actions Pages deployment are complete. The site `https://wussuplee.github.io/garage-tv/` and runtime assets returned HTTP 200. The free short link `https://zip1.io/garagetvlee` redirected there and returned HTTP 200. Public Sports and Indie / Pop playlists were found and added to channels 001 and 002; The user has now supplied all five YouTube playlists: Rap / R&B on 003, Nostalgia on 004 RETRO TV, and Off the Air on new 005. The six-channel update supersedes older five-channel/source-missing notes below. Real Xbox testing remains open. Publishing instructions and 404/403 reports below describe the earlier state.
 
 ## Local Station integration update — 2026-10-18

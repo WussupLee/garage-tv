@@ -17,9 +17,15 @@ function loadAPI() {
 
 export class TelevisionPlayer {
   constructor(handlers) { this.handlers = handlers; this.player = null; this.initializing = null; this.muted = false; this.generation = 0; this.requestId = 0; }
-  beginRequest(requestId) {
+  beginRequest(requestId, reuse = false) {
     // Invalidate first: destroying an iframe may itself dispatch a final event.
-    this.generation++; this.requestId = requestId; this.ready = false;
+    this.requestId = requestId;
+    if (reuse && this.player && this.ready) {
+      this.expectedVideo = '__switching__'; this.activePlaylist = null; this.queue = null; this.queueIndex = 0;
+      this.player.stopVideo();
+      return;
+    }
+    this.generation++; this.ready = false;
     if (this.cancelCreate) this.cancelCreate();
     this.cancelCreate = null; this.initializing = null; this.expectedVideo = null; this.activePlaylist = null; this.queue = null; this.queueIndex = 0;
     if (this.player) { this.player.destroy(); this.player = null; }
@@ -58,11 +64,11 @@ export class TelevisionPlayer {
             if (!current(event) || !this.ready) return;
             const snapshot = this.snapshot();
             // Scheduled videos can change within one channel generation.
-            if (event.data !== snapshot.state || this.expectedVideo && snapshot.videoId && snapshot.videoId !== this.expectedVideo) return;
-            this.handlers.state(event.data, requestId);
+            if (event.data !== snapshot.state || this.expectedVideo && snapshot.videoId !== this.expectedVideo) return;
+            this.handlers.state(event.data, this.requestId);
           },
-          onError: event => { if (current(event)) this.handlers.error(event.data, requestId); },
-          onAutoplayBlocked: event => { if (current(event || {})) this.handlers.blocked(requestId); }
+          onError: event => { if (current(event) && this.expectedVideo !== '__switching__' && (!this.expectedVideo || this.snapshot().videoId === this.expectedVideo)) this.handlers.error(event.data, this.requestId); },
+          onAutoplayBlocked: event => { if (current(event || {})) this.handlers.blocked(this.requestId); }
         }
       });
     });

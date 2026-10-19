@@ -17,6 +17,7 @@ let padInfo = { supported: typeof navigator.getGamepads === 'function', pads: []
 const localMedia = new LocalMediaLibrary();
 const compatibility = new Map();
 let tuneStartedAt = 0;
+let queueErrors = 0;
 let bookmarks = readStorage(BOOKMARK_KEY, {});
 if (!bookmarks || typeof bookmarks !== 'object' || Array.isArray(bookmarks)) bookmarks = {};
 const events = [];
@@ -29,6 +30,8 @@ function notice(message) { $('settings-notice').textContent = message; log(messa
 function textElement(tag, text, className) { const e = document.createElement(tag); e.textContent = text; if (className) e.className = className; return e; }
 function channel() { return config && config.channels.find(c => c.id === tuned); }
 function source() { return activeSource(channel()); }
+function youtubeSource() { return ['youtube_playlist', 'youtube_queue'].includes(source()?.type); }
+function queueKey(c) { return 'queue:' + c.id + ':' + activeSource(c).items.map(item => item.videoId).join(','); }
 function zliveService() { return config?.services.find(service => { try { return new URL(service.url).hostname === 'zlive.st'; } catch (_) { return false; } }); }
 function scheduleNow(c = channel()) { return c && c.sourceType === 'youtube_playlist' && !degraded && !demo ? broadcastAt(c, config.seed) : null; }
 function scheduleKey(now) { return now.cycle + ':' + now.index; }
@@ -71,7 +74,7 @@ const player = new TelevisionPlayer({
   blocked: requestId => { if (requestId !== loadVersion) return; presentation.blocked(requestId); recordCompatibility('requires_interaction', 'Autoplay was blocked.'); log('YouTube reported autoplay blocked.'); },
   state: (state, requestId) => {
     if (requestId !== loadVersion) return;
-    if (!channel() || (source()?.type !== 'youtube_playlist' && !demo)) return;
+    if (!channel() || (!youtubeSource() && !demo)) return;
     if (state === 1) {
       const now = scheduleNow();
       const snapshot = player.snapshot();
@@ -87,10 +90,13 @@ const player = new TelevisionPlayer({
   },
   error: (code, requestId) => {
     if (requestId !== loadVersion) return;
-    if (source()?.type !== 'youtube_playlist' && !demo) return;
+    if (!youtubeSource() && !demo) return;
     const labels = { 2: 'Invalid video parameters', 5: 'HTML5 playback failed', 100: 'Video removed or private', 101: 'Owner blocks embedding', 150: 'Owner blocks embedding', 153: 'YouTube could not verify the playback origin/referrer' };
     const reason = labels[code] || 'YouTube error ' + code;
     log(reason);
+    if (source()?.type === 'youtube_queue' && ++queueErrors < source().items.length) {
+      log('Skipping unavailable queue item.'); player.next(); refreshGuide(); return;
+    }
     presentation.unavailable(requestId);
   }
 });
@@ -128,12 +134,12 @@ function renderCompatibility() {
       item.type === 'external_site' ? 'opens provider in this tab' : 'YouTube IFrame API';
     const lines = [
       number(c.id) + ' ' + c.title + ' · ' + (result.status || item.verification || 'untested').replaceAll('_', ' ').toUpperCase(),
-      'Source: ' + (item.url || (item.type === 'local_media' ? localMedia.current(c.id)?.name : '') || 'not configured'),
+      'Source: ' + (item.type === 'youtube_queue' ? item.items.map(video => 'https://www.youtube.com/watch?v=' + video.videoId).join(', ') : item.url || (item.type === 'local_media' ? localMedia.current(c.id)?.name : '') || 'not configured'),
       'Type: ' + item.type + ' · Browser: ' + typeSupport,
       'Player initialized: ' + (result.playerInitialized ? 'yes' : 'unconfirmed') +
         ' · Autoplay: ' + (result.status === 'requires_interaction' ? 'interaction required' : result.status === 'desktop_playing' ? 'started in this browser' : 'untested'),
       'Startup: ' + (result.startupMs === undefined ? 'unmeasured' : result.startupMs + ' ms') +
-        ' · Iframe: ' + (item.type === 'youtube_playlist' ? 'YouTube controlled' : item.type === 'external_site' ? 'not used' : 'not applicable'),
+        ' · Iframe: ' + (['youtube_playlist', 'youtube_queue'].includes(item.type) ? 'YouTube controlled' : item.type === 'external_site' ? 'not used' : 'not applicable'),
       'Channel switch: ' + (item.type === 'external_site' ? 'leaves Garage TV' : 'inside Garage TV') +
         (result.detail ? ' · ' + result.detail : '')
     ];
@@ -157,16 +163,19 @@ function modeLabel() {
   if (source()?.type === 'local_media') return 'Local files · choose files again after reloading';
   if (!configured(channel())) return 'Source missing · configure in Settings';
   if (source()?.type === 'hls_stream' || source()?.type === 'audio_stream') return 'Continuous stream · provider controls its programming';
+  if (source()?.type === 'youtube_queue') return 'Classic rotation · saved position · official YouTube footage';
   if (degraded) return 'Continuous playback · virtual sync suspended for this tune';
   return scheduleNow() ? 'Virtual schedule · experimental · verified durations required' : 'Continuous playlist · resumes saved position · does not advance while away';
 }
 
 function remember() {
   const c = channel();
-  if (!c || c.sourceType !== 'youtube_playlist' || c.schedule || demo || !player.ready || player.activePlaylist !== c.playlist) return;
+  if (!c || !['youtube_playlist', 'youtube_queue'].includes(c.sourceType) || c.schedule || demo || !player.ready) return;
+  const key = c.sourceType === 'youtube_queue' ? queueKey(c) : c.playlist;
+  if (player.activePlaylist !== key) return;
   const snapshot = player.snapshot();
   if (!snapshot.videoId) return;
-  bookmarks[c.id] = { playlist: c.playlist, index: snapshot.index, seconds: snapshot.seconds };
+  bookmarks[c.id] = { playlist: key, index: snapshot.index, seconds: snapshot.seconds };
   try { writeStorage(BOOKMARK_KEY, bookmarks); } catch (error) { log(error.message); }
 }
 
@@ -176,12 +185,12 @@ async function tune(id) {
   remember();
   const version = ++loadVersion;
   tuneStartedAt = performance.now();
-  tuned = id; selected = id; scheduledKey = ''; degraded = false; demo = false;
-  player.beginRequest(version);
+  tuned = id; selected = id; scheduledKey = ''; degraded = false; demo = false; queueErrors = 0;
+  const selectedSource = activeSource(c);
+  player.beginRequest(version, selectedSource.type === 'youtube_queue');
   native.beginRequest();
   presentation.request(version, id);
   renderDirectory(); log('Requested ' + number(id) + ' ' + c.title);
-  const selectedSource = activeSource(c);
   compatibility.set(id, { status: 'untested', detail: 'Tuning', sourceType: selectedSource.type, url: selectedSource.url, playerInitialized: false });
   if (!selectedSource.enabled) { presentation.unavailable(version); return; }
   if (selectedSource.type === 'external_site') {
@@ -200,13 +209,14 @@ async function tune(id) {
     return;
   }
   try {
-    const videos = playlistSnapshots[c.playlist]?.videos?.map(item => item.videoId);
+    const videos = selectedSource.type === 'youtube_queue' ? selectedSource.items.map(item => item.videoId) : playlistSnapshots[c.playlist]?.videos?.map(item => item.videoId);
     await player.ensure(c.schedule ? { videoId: scheduleNow(c).program.videoId } : videos?.length ? { videoId: videos[0] } : { playlist: c.playlist });
     if (version !== loadVersion || presentation.state.mode === 'unavailable') return;
     if (c.schedule) loadScheduled(true);
     else {
+      const key = selectedSource.type === 'youtube_queue' ? queueKey(c) : c.playlist;
       const mark = bookmarks[id];
-      player.playlist(c.playlist, mark && mark.playlist === c.playlist ? mark : {}, videos);
+      player.playlist(key, mark && mark.playlist === key ? mark : {}, videos);
     }
     // Some embeds cue the video without emitting PLAYING or onAutoplayBlocked.
     // Make the existing A start action available instead of waiting on black.
@@ -234,7 +244,7 @@ function skip() {
     if (file) tune(tuned);
     return;
   }
-  if (source()?.type !== 'youtube_playlist' && !demo || !player.ready) return;
+  if (!youtubeSource() && !demo || !player.ready) return;
   const c = channel();
   if (c.schedule && !demo) {
     const programs = orderedPrograms(c, config.seed);
@@ -260,6 +270,11 @@ function programInfo(c) {
   if (selectedSource.type === 'external_site') return { now: c.id === 0 ? 'SELECT SERVICE' : 'OPEN PROVIDER', next: '-' };
   if (selectedSource.type === 'audio_stream' || selectedSource.type === 'hls_stream') return { now: selectedSource.name || c.title, next: '-' };
   if (selectedSource.type === 'local_media') return { now: localMedia.current(c.id)?.name || 'SELECT FILES', next: '-' };
+  if (selectedSource.type === 'youtube_queue') {
+    if (c.id !== tuned || !player.ready || player.activePlaylist !== queueKey(c)) return { now: 'CLASSIC ROTATION', next: '-' };
+    const index = player.snapshot().index;
+    return { now: selectedSource.items[index]?.title || 'CLASSIC ROTATION', next: selectedSource.items[(index + 1) % selectedSource.items.length]?.title || '-' };
+  }
   const point = broadcastAt(c, config.seed);
   if (point && !(c.id === tuned && degraded)) return { now: point.program.title, next: point.next.title };
   const snap = c.id === presentation.state.current && !demo ? player.snapshot() : null;
@@ -305,7 +320,11 @@ function refreshGuide() {
   });
   Array.from(rows.children).forEach(row => { if (!config.channels.some(c => c.id === Number(row.dataset.channel))) row.remove(); });
   if (selected !== null) rows.setAttribute('aria-activedescendant', 'guide-channel-' + selected);
-  if (panel === 'guide') rows.querySelector('.is-selected')?.scrollIntoView({ block: 'nearest' });
+  if (panel === 'guide') {
+    rows.querySelector('.is-selected')?.scrollIntoView({ block: 'nearest' });
+    // Keep the scroll window aligned to whole rows at 720p.
+    rows.scrollTop = Math.round(rows.scrollTop / rowHeight) * rowHeight;
+  }
 }
 
 function confirmGuide() {
@@ -399,14 +418,16 @@ function loadSourceForm() {
   $('source-name').value = item.name;
   $('channel-playlist').value = item.type === 'youtube_playlist' && item.url ? 'https://www.youtube.com/playlist?list=' + item.url : item.url;
   $('channel-schedule').value = item.schedule ? JSON.stringify(item.schedule, null, 2) : '';
+  $('channel-queue').value = item.items ? JSON.stringify(item.items, null, 2) : '';
   $('source-enabled').checked = item.enabled;
   updateSourceFields();
 }
 function updateSourceFields() {
   const type = $('source-type').value;
   $('youtube-settings').hidden = type !== 'youtube_playlist';
+  $('queue-settings').hidden = type !== 'youtube_queue';
   $('local-settings').hidden = type !== 'local_media';
-  $('source-url-label').hidden = type === 'local_media';
+  $('source-url-label').hidden = type === 'local_media' || type === 'youtube_queue';
   $('channel-playlist').placeholder = type === 'youtube_playlist' ? 'https://youtube.com/playlist?list=…' :
     type === 'hls_stream' ? 'https://example.com/live.m3u8' : 'https://example.com/';
 }
@@ -470,7 +491,7 @@ function action(command) {
   }
 }
 
-function toggleMute() { const muted = source()?.type === 'youtube_playlist' || demo ? player.mute() : native.mute(); $('toggle-mute').textContent = muted ? 'Unmute' : 'Mute'; $('toggle-mute').setAttribute('aria-pressed', String(muted)); }
+function toggleMute() { const muted = youtubeSource() || demo ? player.mute() : native.mute(); $('toggle-mute').textContent = muted ? 'Unmute' : 'Mute'; $('toggle-mute').setAttribute('aria-pressed', String(muted)); }
 async function toggleFullscreen() {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
@@ -533,9 +554,10 @@ $('channel-form').onsubmit = event => {
     const index = Number($('source-select').value);
     const item = c.sources[index];
     item.type = $('source-type').value; item.name = $('source-name').value;
-    item.url = item.type === 'local_media' ? '' : $('channel-playlist').value;
+    item.url = ['local_media', 'youtube_queue'].includes(item.type) ? '' : $('channel-playlist').value;
     item.enabled = $('source-enabled').checked;
     item.schedule = item.type !== 'youtube_playlist' || !$('channel-schedule').value.trim() ? null : JSON.parse($('channel-schedule').value);
+    item.items = item.type === 'youtube_queue' ? JSON.parse($('channel-queue').value) : null;
     item.verification = 'untested';
     c.activeSource = index;
     save(next); renderChannelSelect(id); notice('Channel ' + number(id) + ' saved.');

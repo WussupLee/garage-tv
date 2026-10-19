@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "lineupRevision": 2,
   "seed": "garage-tv-v2",
   "channels": [
     {
@@ -296,6 +297,60 @@
             "autoplay": false
           }
         }
+      ]
+    },
+    {
+      "id": 12, "order": 12, "title": "FOOTBALL",
+      "description": "College football classics in-app; official NFL archive available externally.",
+      "enabled": true, "activeSource": 0,
+      "sources": [
+        { "type": "youtube_queue", "name": "Classic football rotation", "enabled": true, "verification": "desktop_playing", "items": [
+          { "videoId": "WitAjwWY6EQ", "title": "Texas vs USC Rose Bowl highlights", "provider": "ESPN College Football", "year": 2006, "kind": "highlights" },
+          { "videoId": "7vk_fGPDXDY", "title": "Texas vs USC Rose Bowl rewind", "provider": "ESPN", "year": 2006, "kind": "partial" },
+          { "videoId": "HXVzj_EbAuA", "title": "Ohio State vs Miami double overtime", "provider": "ESPN Throwback", "year": 2003, "kind": "highlights" },
+          { "videoId": "emZIIc_n9kw", "title": "Florida State vs Auburn title game", "provider": "ESPN College Football", "year": 2014, "kind": "highlights" },
+          { "videoId": "1dFhY-AJSE4", "title": "Greatest college title game moments", "provider": "ESPN College Football", "year": 2020, "kind": "highlights" },
+          { "videoId": "H1vbeL282po", "title": "Texas vs Alabama title game retrospective", "provider": "ESPN College Football", "year": 2010, "kind": "partial" },
+          { "videoId": "ENOcodt67TM", "title": "Classic Iron Bowl rivalry games", "provider": "ESPN College Football", "year": 2013, "kind": "highlights" },
+          { "videoId": "8K-HUNIFEno", "title": "CFP title game highlights of the decade", "provider": "ESPN College Football", "year": 2020, "kind": "highlights" }
+        ] },
+        { "type": "external_site", "name": "NFL Throwback archive", "url": "https://www.nfl.com/videos/channel/nfl-throwback-vc", "enabled": true, "verification": "opens_externally" }
+      ]
+    },
+    {
+      "id": 13, "order": 13, "title": "BASKETBALL",
+      "description": "Classic NBA games and highlights from ESPN; NBA archive available externally.",
+      "enabled": true, "activeSource": 0,
+      "sources": [
+        { "type": "youtube_queue", "name": "Classic basketball rotation", "enabled": true, "verification": "desktop_playing", "items": [
+          { "videoId": "EoVTttvKfRs", "title": "Cavaliers vs Warriors 2016 Finals Game 7", "provider": "ESPN", "year": 2016, "kind": "full" },
+          { "videoId": "vfhGmT0y9mg", "title": "2011 NBA Finals in 13 minutes", "provider": "ESPN", "year": 2011, "kind": "highlights" },
+          { "videoId": "oFP83xQaG0A", "title": "2016 NBA Finals in 13 minutes", "provider": "ESPN", "year": 2016, "kind": "highlights" },
+          { "videoId": "hcMl6LKwqRE", "title": "LeBron vs Kobe 2008 duel", "provider": "NBA on ESPN", "year": 2008, "kind": "highlights" },
+          { "videoId": "c2QL6PoTl1w", "title": "Lakers and Celtics Finals rivalry", "provider": "ESPN", "year": 2008, "kind": "highlights" },
+          { "videoId": "LZtatLHnQcQ", "title": "Jordan Bulls 1990-91 dynasty", "provider": "ESPN", "year": 1991, "kind": "highlights" },
+          { "videoId": "Budtv1HCLpQ", "title": "Jordan Bulls 1995-96 dynasty", "provider": "ESPN", "year": 1996, "kind": "highlights" },
+          { "videoId": "0Rk5Tz9BRIA", "title": "LeBron chase-down block 2016 Finals", "provider": "ESPN", "year": 2016, "kind": "highlights" }
+        ] },
+        { "type": "external_site", "name": "NBA Classic Games", "url": "https://www.nba.com/watch/list/collection/classic-games", "enabled": true, "verification": "opens_externally" }
+      ]
+    },
+    {
+      "id": 14, "order": 14, "title": "FUTBOL",
+      "description": "Classic club Futbol highlights in-app; FIFA World Cup archive externally.",
+      "enabled": true, "activeSource": 0,
+      "sources": [
+        { "type": "youtube_queue", "name": "Classic Futbol rotation", "enabled": true, "verification": "desktop_playing", "items": [
+          { "videoId": "3ojXHf293M8", "title": "Liverpool vs Milan Istanbul final", "provider": "Liverpool FC", "year": 2005, "kind": "highlights" },
+          { "videoId": "j6LZLm_9bSE", "title": "Liverpool vs Milan final recap", "provider": "TUDN USA", "year": 2005, "kind": "highlights" },
+          { "videoId": "_MCZrU4Z5hg", "title": "Manchester United vs Bayern final", "provider": "TUDN USA", "year": 1999, "kind": "highlights" },
+          { "videoId": "zXyVq_0eTj4", "title": "1999 Champions League final retro", "provider": "TUDN USA", "year": 1999, "kind": "highlights" },
+          { "videoId": "pKgJT8nqVSQ", "title": "Liverpool vs Alaves European classic", "provider": "Liverpool FC", "year": 2001, "kind": "highlights" },
+          { "videoId": "y54DrDfVTtc", "title": "Arsenal vs Liverpool FA Cup classic", "provider": "Liverpool FC", "year": 2001, "kind": "highlights" },
+          { "videoId": "jZSOXy2K6UQ", "title": "Liverpool vs Arsenal European classic", "provider": "Liverpool FC", "year": 2008, "kind": "highlights" },
+          { "videoId": "vItaJtaAgEY", "title": "Liverpool vs Juventus European classic", "provider": "Liverpool FC", "year": 2005, "kind": "highlights" }
+        ] },
+        { "type": "external_site", "name": "FIFA+ Archive", "url": "https://www.plus.fifa.com/en/catalogue/archive", "enabled": true, "verification": "opens_externally" }
       ]
     }
   ],
