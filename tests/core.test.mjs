@@ -8,10 +8,11 @@ const defaults = JSON.parse(await readFile(new URL('../data/default-config.json'
 const programs = [{ videoId: 'M7lc1UVf-VE', title: 'A', duration: 1800 }, { videoId: 'bHQqvYy5KYo', title: 'B', duration: 600 }];
 const c = { ...defaults.channels[1], schedule: { epoch: '2026-01-01T00:00:00Z', durationsVerified: true, shuffle: false, programs } };
 const epoch = Date.parse(c.schedule.epoch);
-test('deployable defaults contain six channels and the requested same-tab service URL', () => {
+test('deployable defaults contain six channels, embedded zlive, and the requested fallback service URL', () => {
   const config = validateConfig(defaults);
   assert.deepEqual(config.channels.map(c => c.id), [0, 1, 2, 3, 4, 5]);
-  assert.equal(config.services[0].url, 'https://ntv.st/matches/kobra');
+  assert.equal(config.services[0].url, 'https://zlive.st/');
+  assert.equal(config.services[1].url, 'https://ntv.st/matches/kobra');
   assert.equal(config.channels[1].playlist, 'PLqlmRlit66auWzsLO8agSNSQqsitEvR4-');
   assert.equal(config.channels[2].playlist, 'PLqlmRlit66atCuXs45FwMHbId06vci8Th');
   assert.equal(config.channels[3].playlist, 'PLqlmRlit66au-YSAWGa6Qzyb8A4_7uQpF');
@@ -60,12 +61,15 @@ test('seeded order survives refresh and the complete schedule cycle contains eve
 });
 
 test('five-channel saved settings gain supplied sources while custom choices are preserved', () => {
-  const old = validateConfig(defaults); old.channels.pop();
+  const old = validateConfig(defaults); old.channels.pop(); old.migrations = []; old.services.shift();
   old.channels[3].playlist = ''; old.channels[4].playlist = 'PLcustom_fixture_1234567890';
   const upgraded = upgradeChannelDefaults(old, validateConfig(defaults));
   assert.equal(upgraded.channels[3].playlist, 'PLqlmRlit66au-YSAWGa6Qzyb8A4_7uQpF');
   assert.equal(upgraded.channels[4].playlist, 'PLcustom_fixture_1234567890');
   assert.equal(upgraded.channels[5].playlist, 'PLQl8zBB7bPvLWfGCVicg_kVmSVTGml2y4');
+  assert.equal(upgraded.services[0].url, 'https://zlive.st/');
   upgraded.channels[3].playlist = '';
+  upgraded.services.shift();
   assert.equal(upgradeChannelDefaults(upgraded, validateConfig(defaults)).channels[3].playlist, '');
+  assert.equal(upgradeChannelDefaults(upgraded, validateConfig(defaults)).services.some(service => service.url === 'https://zlive.st/'), false);
 });

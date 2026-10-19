@@ -1,5 +1,6 @@
 {
   "version": 1,
+  "migrations": ["zlive-embed-v1"],
   "seed": "garage-tv-v1",
   "channels": [
     {
@@ -58,6 +59,11 @@
     }
   ],
   "services": [
+    {
+      "id": "zlive",
+      "name": "OPEN ZLIVE.ST",
+      "url": "https://zlive.st/"
+    },
     {
       "id": "kobra",
       "name": "Kobra matches",

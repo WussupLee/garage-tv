@@ -1,5 +1,6 @@
 export const CONFIG_KEY = 'garage-tv.config.v1';
 export const BOOKMARK_KEY = 'garage-tv.bookmarks.v1';
+export const ZLIVE_MIGRATION = 'zlive-embed-v1';
 export const clone = value => JSON.parse(JSON.stringify(value));
 
 export function playlistId(value) {
@@ -59,7 +60,8 @@ export function validateConfig(value) {
   if (!channels.some(c => c.enabled)) throw new Error('Enable at least one channel.');
   if (!Array.isArray(value.services) || value.services.length > 100) throw new Error('Services must be a list of at most 100 links.');
   const services = value.services.map((s, index) => ({ id: 'service-' + index, name: text(s.name, 'Service name', 80), url: serviceUrl(s.url) }));
-  return { version: 1, seed: text(value.seed, 'Schedule seed', 80), channels, services };
+  const migrations = Array.isArray(value.migrations) ? value.migrations.filter(item => typeof item === 'string').slice(0, 100) : [];
+  return { version: 1, migrations, seed: text(value.seed, 'Schedule seed', 80), channels, services };
 }
 
 export function configured(channel) {
@@ -79,17 +81,24 @@ export function writeStorage(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) { throw new Error('Browser storage is unavailable or full. Export your configuration before leaving.'); }
 }
 
-// Upgrade the original five-channel saved configuration without replacing custom sources.
+// Upgrade saved configurations once without replacing custom sources or re-adding removed services.
 export function upgradeChannelDefaults(saved, defaults) {
   const next = clone(saved);
-  if (next.channels.some(c => c.id === 5)) return next;
-  for (const incoming of defaults.channels) {
-    const existing = next.channels.find(c => c.id === incoming.id);
-    if (!existing) next.channels.push(clone(incoming));
-    else if ([3, 4].includes(existing.id) && !existing.playlist && !existing.schedule) {
-      existing.playlist = incoming.playlist;
-      existing.description = incoming.description;
+  if (!next.channels.some(c => c.id === 5)) {
+    for (const incoming of defaults.channels) {
+      const existing = next.channels.find(c => c.id === incoming.id);
+      if (!existing) next.channels.push(clone(incoming));
+      else if ([3, 4].includes(existing.id) && !existing.playlist && !existing.schedule) {
+        existing.playlist = incoming.playlist;
+        existing.description = incoming.description;
+      }
     }
+  }
+  next.migrations ||= [];
+  if (!next.migrations.includes(ZLIVE_MIGRATION)) {
+    const incoming = defaults.services.find(service => new URL(service.url).hostname === 'zlive.st');
+    if (incoming && !next.services.some(service => new URL(service.url).hostname === 'zlive.st')) next.services.unshift(clone(incoming));
+    next.migrations.push(ZLIVE_MIGRATION);
   }
   return validateConfig(next);
 }

@@ -22,6 +22,7 @@ function status(message) { $('status').textContent = message; }
 function notice(message) { $('settings-notice').textContent = message; log(message); }
 function textElement(tag, text, className) { const e = document.createElement(tag); e.textContent = text; if (className) e.className = className; return e; }
 function channel() { return config && config.channels.find(c => c.id === tuned); }
+function zliveService() { return config?.services.find(service => { try { return new URL(service.url).hostname === 'zlive.st'; } catch (_) { return false; } }); }
 function scheduleNow(c = channel()) { return c && !degraded && !demo ? broadcastAt(c, config.seed) : null; }
 function scheduleKey(now) { return now.cycle + ':' + now.index; }
 const presentation = new StationPresentation(renderPresentation);
@@ -46,6 +47,7 @@ function renderPresentation(s = presentation.state) {
   $('failure-guide').toggleAttribute('hidden', !failed);
   $('playback-bug').hidden = !!panel || s.mode !== 'playing' || s.osdVisible;
   $('directory').hidden = s.mode !== 'directory' || !!panel;
+  syncDirectoryFrame(s.mode === 'directory');
   if (failed && lastPresentationMode !== 'unavailable') {
     // A timeout must also prevent a late-ready iframe from starting sound behind the error.
     player.beginRequest(loadVersion);
@@ -85,7 +87,7 @@ const player = new TelevisionPlayer({
 function modeLabel() {
   if (demo) return 'YouTube diagnostic video · not channel programming';
   if (!channel()) return '';
-  if (tuned === 0) return 'Direct service links · use Edge Back to return';
+  if (tuned === 0) return zliveService() ? 'Embedded zlive.st · OPEN ZLIVE.ST leaves Garage TV in this tab' : 'Direct service links · use Edge Back to return';
   if (!configured(channel())) return 'Source missing · paste a playlist in Settings';
   if (degraded) return 'Continuous playback · virtual sync suspended for this tune';
   return scheduleNow() ? 'Virtual schedule · experimental · verified durations required' : 'Continuous playlist · resumes saved position · does not advance while away';
@@ -244,10 +246,23 @@ function renderDirectory() {
   $('service-links').replaceChildren();
   config.services.forEach(service => {
     const link = textElement('a', service.name, 'service-link');
-    link.href = service.url; // Same-tab navigation: never window.open or embedded service frames.
+    link.href = service.url;
     $('service-links').append(link);
   });
   if (!config.services.length) $('service-links').append(textElement('p', 'No service links yet. Add one in Settings.'));
+  syncDirectoryFrame(presentation.state.mode === 'directory');
+}
+
+function syncDirectoryFrame(active) {
+  const frame = $('live-sports-frame');
+  const service = config && zliveService();
+  if (active && service) {
+    if (frame.dataset.url !== service.url) { frame.src = service.url; frame.dataset.url = service.url; }
+    frame.hidden = false;
+  } else {
+    frame.hidden = true;
+    if (frame.dataset.url) { frame.src = 'about:blank'; delete frame.dataset.url; }
+  }
 }
 
 function save(next) {

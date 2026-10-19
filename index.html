@@ -31,9 +31,10 @@
     </svg>
     <button id="playback-bug" aria-label="Open television controls" hidden><img src="./assets/garage-tv-bug-white.svg" width="80" height="49.87" alt="Garage TV"></button>
     <section id="directory" class="directory" aria-label="Live Sports directory" hidden>
-      <h1>000 · LIVE SPORTS</h1><p>Choose a service. It opens in this tab. Use Edge’s Back command to return to Garage TV.</p>
-      <p class="muted">Garage TV opens no pop-ups. External sites control their own ads and pop-ups; they cannot be blocked by Garage TV.</p>
-      <div id="service-links" class="service-links"></div><button id="edit-services" type="button">Edit service links</button>
+      <iframe id="live-sports-frame" title="zlive.st live sports" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen hidden></iframe>
+      <div class="live-sports-actions" aria-label="Live Sports options">
+        <div id="service-links" class="service-links"></div><button id="edit-services" type="button">SERVICES</button>
+      </div>
     </section>
     <section id="guide" class="guide" aria-labelledby="guide-title" hidden>
       <svg class="artwork guide-art" viewBox="0 0 1280 720">

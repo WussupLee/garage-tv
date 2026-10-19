@@ -13,6 +13,7 @@ async function main() {
   const page=await browser.newPage({viewport:{width:1280,height:720}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(fakeAPI);await page.addInitScript(()=>Math.random=()=>0);
+  await page.route('https://zlive.st/**',r=>r.fulfill({contentType:'text/html',body:'<!doctype html><title>zlive fixture</title><p>zlive fixture</p>'}));
   const defaults=JSON.parse(await readFile('data/default-config.json','utf8'));
   for(const c of defaults.channels)if(c.id)c.playlist='';
   await page.route('**/data/default-config.json',r=>r.fulfill({json:defaults}));
@@ -33,12 +34,12 @@ async function main() {
   await page.locator('#channel-form button[type=submit]').click();
   await page.locator('#settings [data-close]').click();await page.keyboard.press('ArrowDown');await mode('playing');
   await page.waitForFunction(()=>window.__calls.some(c=>c.list==='PLsecond_fixture_1234567890'));
-  let before=await count();const frameBox=await page.locator('iframe').boundingBox();
+  let before=await count();const frameBox=await page.locator('iframe[title="YouTube television player"]').boundingBox();
   await page.keyboard.press('g');await page.keyboard.press('ArrowUp');
   assert.equal(await page.locator('.is-selected').getAttribute('data-channel'),'1');
   assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'),'2');
   await page.keyboard.press('ArrowLeft');assert.equal(await count(),before);
-  assert.deepEqual(await page.locator('iframe').boundingBox(),frameBox);
+  assert.deepEqual(await page.locator('iframe[title="YouTube television player"]').boundingBox(),frameBox);
   await delay(3100);await page.keyboard.press('Escape');
   assert.equal(await page.locator('#playback-bug').isVisible(),true);
   assert.equal(await page.evaluate(()=>document.activeElement.id),'app');
@@ -57,7 +58,7 @@ async function main() {
   await emit('onStateChange',1);await mode('playing');
   await emit('onAutoplayBlocked');await mode('blocked');
   await page.keyboard.press('Enter');await mode('playing');
-  await emit('onError',153);await mode('unavailable');assert.equal(await page.locator('iframe').count(),0);
+  await emit('onError',153);await mode('unavailable');assert.equal(await page.locator('iframe[title="YouTube television player"]').count(),0);
   await page.evaluate(()=>window.__autoPlay=true);await page.keyboard.press('Enter');await mode('playing');
   // Y is edge-triggered, held D-pad moves focus only, A confirms, B closes.
   await page.evaluate(()=>{__padConnected=true;__padButtons[3]={pressed:true,value:1};});await delay(600);
@@ -69,6 +70,8 @@ async function main() {
   await page.evaluate(()=>{__padButtons[1]={pressed:false,value:0};__padConnected=false;});
   // Existing settings, service editing, import/export and schedule return behavior.
   await page.keyboard.press('g');await page.locator('[data-channel="0"]').click();await mode('directory');
+  assert.equal(await page.locator('#live-sports-frame').isVisible(),true);
+  assert.equal(await page.locator('#live-sports-frame').getAttribute('src'),'https://zlive.st/');
   assert.equal(await page.locator('.service-link').first().getAttribute('target'),null);
   await page.locator('#edit-services').click();
   await page.locator('#service-name').fill('Service fixture');await page.locator('#service-url').fill('https://example.com/sports');
