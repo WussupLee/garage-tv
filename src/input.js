@@ -47,7 +47,7 @@ export function keyboardInput(action) {
     const editing = /INPUT|TEXTAREA|SELECT/.test(event.target.tagName) || event.target.isContentEditable;
     if (event.key === 'Escape') { event.preventDefault(); if (!event.repeat) action('back'); return; }
     if (editing || event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
-    const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', Enter: 'confirm', g: 'guide', b: 'back', c: 'controls', s: 'settings', d: 'diagnostics', m: 'mute', '[': 'previous', ']': 'next', ' ': 'play' };
+    const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', Enter: 'confirm', g: 'guide', b: 'back', c: 'controls', f: 'fullscreen', s: 'settings', d: 'diagnostics', m: 'mute', '[': 'previous', ']': 'next', ' ': 'play' };
     const command = map[event.key] || map[event.key.toLowerCase()];
     if (event.key === 'Enter' && event.target.matches('button,a')) return;
     if (command) {

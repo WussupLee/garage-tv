@@ -41,10 +41,11 @@ Configuration uses localStorage with validated JSON import/export, optional down
 | Confirm / retry / start | Enter | A |
 | Close panel; open guide from failure | Escape or B | B |
 | Controls menu | C; click playback bug | Menu; click playback bug |
+| Fullscreen | F; FULL SCREEN in controls or LIVE SPORTS | On-screen button via Edge cursor |
 | Settings / diagnostics | S / D | Controls menu |
 | Mute / playback | M / Space | Controls menu |
 
-Directions repeat after 350 ms, then every 160 ms. A/B/Y/Menu and bumpers are edge-triggered. Guide focus stops at its first/last row; channel surfing wraps. Unknown mappings are diagnostic only. Xbox Edge may reserve inputs; **these mappings still need physical Xbox testing**. In LIVE SPORTS, left/right moves among service links. In Settings, D-pad moves controls or dropdown options. Keyboard shortcuts preserve text entry. Gamepad-synthesized actions may not satisfy autoplay's trusted-interaction requirements: use Edge cursor/native controls or a keyboard if needed. Focus inside the cross-origin YouTube iframe can prevent application shortcuts; Tab or Edge's cursor can return to the app.
+Directions repeat after 350 ms, then every 160 ms. A/B/Y/Menu and bumpers are edge-triggered. Guide focus stops at its first/last row; channel surfing wraps. Unknown mappings are diagnostic only. Xbox Edge may reserve inputs; **these mappings still need physical Xbox testing**. In LIVE SPORTS, left/right moves among service links and the FULL SCREEN button. In Settings, D-pad moves controls or dropdown options. Keyboard shortcuts preserve text entry. Gamepad-synthesized actions may not satisfy autoplay's trusted-interaction requirements: use Edge cursor/native controls or a keyboard if needed. Focus inside a cross-origin player can prevent application shortcuts; use the visible LIVE SPORTS button or Edge's cursor to return to the app.
 
 ## Local Station presentation
 

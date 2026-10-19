@@ -22,6 +22,12 @@ async function main() {
   const count=()=>page.evaluate(()=>window.__calls.length);
   await page.goto('http://127.0.0.1:4173/garage-tv/');await mode('unavailable');
   assert.equal(await page.locator('.guide-row').count(),6);
+  await page.keyboard.press('f');
+  await page.waitForFunction(()=>document.fullscreenElement===document.documentElement);
+  await page.waitForFunction(()=>document.querySelector('#toggle-fullscreen').textContent==='EXIT FULL SCREEN');
+  assert.equal(await page.locator('#toggle-fullscreen').textContent(),'EXIT FULL SCREEN');
+  await page.keyboard.press('f');
+  await page.waitForFunction(()=>document.fullscreenElement===null);
   await page.keyboard.press('s');
   await page.locator('#channel-playlist').fill('https://example.com/not-youtube');
   await page.locator('#channel-form button[type=submit]').click();
@@ -73,6 +79,12 @@ async function main() {
   assert.equal(await page.locator('#live-sports-frame').isVisible(),true);
   assert.equal(await page.locator('#live-sports-frame').getAttribute('src'),'https://zlive.st/');
   assert.equal(await page.locator('.service-link').first().getAttribute('target'),null);
+  await page.locator('#directory-fullscreen').click();
+  await page.waitForFunction(()=>document.fullscreenElement===document.documentElement);
+  await page.waitForFunction(()=>document.querySelector('#directory-fullscreen').textContent==='EXIT FULL SCREEN');
+  assert.equal(await page.locator('#directory-fullscreen').textContent(),'EXIT FULL SCREEN');
+  await page.locator('#directory-fullscreen').click();
+  await page.waitForFunction(()=>document.fullscreenElement===null);
   await page.locator('#edit-services').click();
   await page.locator('#service-name').fill('Service fixture');await page.locator('#service-url').fill('https://example.com/sports');
   await page.locator('#service-form button[type=submit]').click();

@@ -309,6 +309,7 @@ function importConfig(raw) {
 
 function action(command) {
   if (!config) return;
+  if (command === 'fullscreen') { toggleFullscreen(); return; }
   if (command === 'back') { if (panel) closePanel(); else if (presentation.state.mode === 'unavailable') openPanel('guide'); return; }
   if (['guide', 'settings', 'diagnostics', 'controls'].includes(command)) { openPanel(command); return; }
   if (command === 'previous' || command === 'next') { panel === 'guide' ? moveGuide(command === 'next' ? 1 : -1) : changeChannel(command === 'next' ? 1 : -1); return; }
@@ -334,6 +335,25 @@ function action(command) {
 }
 
 function toggleMute() { const muted = player.mute(); $('toggle-mute').textContent = muted ? 'Unmute' : 'Mute'; $('toggle-mute').setAttribute('aria-pressed', String(muted)); }
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else {
+      if (!document.documentElement.requestFullscreen) throw new Error('Browser fullscreen is unavailable.');
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (error) {
+    log('Fullscreen: ' + error.message);
+    status('Fullscreen could not start. Try the browser fullscreen control.');
+  }
+}
+function syncFullscreen() {
+  const label = document.fullscreenElement ? 'EXIT FULL SCREEN' : 'FULL SCREEN';
+  $('toggle-fullscreen').textContent = label;
+  $('directory-fullscreen').textContent = label;
+  fitStage();
+}
+document.addEventListener('fullscreenchange', syncFullscreen);
 function togglePlay() {
   if (!player.ready) { startPlayback(); return; }
   if (player.snapshot().state !== 1 && scheduleNow()) loadScheduled(true);
@@ -351,6 +371,7 @@ $('app').addEventListener('contextmenu', event => { event.preventDefault(); open
 $('app').addEventListener('keydown', event => { if (event.key === 'Tab' && !panel && event.target === $('app')) { event.preventDefault(); openPanel('controls'); } });
 document.querySelectorAll('[data-close]').forEach(button => { button.onclick = closePanel; });
 $('toggle-play').onclick = togglePlay; $('toggle-mute').onclick = toggleMute;
+$('toggle-fullscreen').onclick = $('directory-fullscreen').onclick = toggleFullscreen;
 $('skip-video').onclick = () => skip();
 function startPlayback() {
   if (!channel()) return;
