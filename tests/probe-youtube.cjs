@@ -36,8 +36,9 @@ async function main() {
         }
       });
     }));
-    const failures = [];
+    const failures = [], observations = [];
     for (const id of ids) {
+      const started = Date.now();
       const result = await page.evaluate(videoId => new Promise(resolve => {
         let settled = false;
         const finish = value => { if (settled) return; settled = true; clearTimeout(timer); window.__probe.pending = null; resolve(value); };
@@ -46,9 +47,13 @@ async function main() {
         window.__probe.player.loadVideoById(videoId);
         window.__probe.player.playVideo();
       }), id);
-      console.log(id + ' ' + result);
-      if (result !== 'playing') failures.push(id + ' ' + result);
+      const startupMs = Date.now() - started;
+      observations.push({ id, result, startupMs });
+      console.log(id + ' ' + result + ' ' + startupMs + 'ms');
+      if (result !== 'playing') failures.push(id + ' ' + result + ' ' + startupMs + 'ms');
     }
+    const playing = observations.filter(item => item.result === 'playing').map(item => item.startupMs).sort((a, b) => a - b);
+    if (playing.length) console.log('SUMMARY ' + playing.length + '/' + ids.length + ' playing; startup min/median/max ' + playing[0] + '/' + playing[Math.floor(playing.length / 2)] + '/' + playing.at(-1) + 'ms');
     if (failures.length) throw new Error('Embed probe failures:\n' + failures.join('\n'));
   } finally { if (browser) await browser.close(); server.kill(); await unlink(path).catch(() => {}); }
 }

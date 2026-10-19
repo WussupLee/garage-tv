@@ -24,7 +24,7 @@ Channel 000 LIVE SPORTS is the only external destination. Channels 001–014 rem
 | 013 BASKETBALL | Verified official YouTube queue | 8 items |
 | 014 FUTBOL | Verified official YouTube queue | 8 items |
 
-The October 19, 2026 desktop Edge probe required every bundled snapshot and queue item to reach the IFrame API PLAYING event. Entries returning embed error 150 were removed. Provider permissions can change after deployment, and desktop results do not establish Xbox compatibility.
+The October 19, 2026 desktop Edge probe required every bundled snapshot and queue item to reach the IFrame API PLAYING event. All 220 unique retained IDs played; reuse startup in that probe measured 187 ms minimum, 245 ms median, and 613 ms maximum. Entries returning embed error 150 were removed. Provider permissions can change after deployment, and desktop results do not establish Xbox compatibility.
 
 Every bundled YouTube source shuffles once per page launch. Its order remains stable during that session, every item is used before the next cycle, and the next launch avoids starting on the previous launch item when alternatives exist. Returning to a channel in the same session resumes its current item and timestamp. Custom ordered channels continue to use persistent bookmarks when shuffle is disabled.
 
