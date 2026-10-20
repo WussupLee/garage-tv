@@ -34,7 +34,7 @@ export class NativeMediaAdapter {
       media.removeAttribute('src');
       media.load();
       media.hidden = true;
-      media.onplaying = media.onwaiting = media.onerror = media.onended = null;
+      media.onplaying = media.onwaiting = media.onerror = media.onended = media.onloadedmetadata = null;
     }
     this.active = null;
     this.started = false;
@@ -57,6 +57,10 @@ export class NativeMediaAdapter {
     media.onwaiting = () => { if (current() && this.started) this.handlers.buffering(requestId); };
     media.onerror = () => { if (current()) this.reconnect(source, requestId, generation, 'Media error ' + (media.error?.code || 'unknown')); };
     media.onended = () => { if (current()) this.handlers.ended(requestId); };
+    media.onloadedmetadata = () => {
+      if (!current() || !Number.isFinite(source.startSeconds) || source.startSeconds <= 0) return;
+      media.currentTime = Math.min(source.startSeconds, Number.isFinite(media.duration) ? Math.max(0, media.duration - 0.25) : source.startSeconds);
+    };
     try {
       if (source.type === 'hls_stream') {
         if (media.canPlayType('application/vnd.apple.mpegurl')) {

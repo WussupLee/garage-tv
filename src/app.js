@@ -1,4 +1,4 @@
-import { CONFIG_KEY, LEGACY_CONFIG_KEY, BOOKMARK_KEY, LAST_START_KEY, SOURCE_TYPES, activeSource, upgradeChannelDefaults, clone, validateConfig, startupChannel, configured, readStorage, writeStorage, shuffledQueue } from './config.js';
+import { CONFIG_KEY, LEGACY_CONFIG_KEY, BOOKMARK_KEY, LAST_START_KEY, SOURCE_TYPES, activeSource, upgradeChannelDefaults, clone, validateConfig, startupChannel, surfChannels, configured, readStorage, writeStorage, shuffledQueue } from './config.js';
 import { broadcastAt, orderedPrograms } from './schedule.js';
 import { TelevisionPlayer } from './player.js';
 import { GamepadInput, keyboardInput, moveFocus } from './input.js';
@@ -13,6 +13,8 @@ let config, tuned = null, selected = null, panel = null;
 let loadVersion = 0, scheduledKey = '', degraded = false, demo = false;
 let playlistSnapshots = {};
 let lastPresentationMode = 'launch';
+let nativeQueueIndex = 0;
+let calibrationOpen = false;
 let padInfo = { supported: typeof navigator.getGamepads === 'function', pads: [] };
 const localMedia = new LocalMediaLibrary();
 const compatibility = new Map();
@@ -35,13 +37,20 @@ function textElement(tag, text, className) { const e = document.createElement(ta
 function channel() { return config && config.channels.find(c => c.id === tuned); }
 function source() { return activeSource(channel()); }
 function youtubeSource() { return ['youtube_playlist', 'youtube_queue'].includes(source()?.type); }
+function nativeQueueSource() { return source()?.type === 'video_queue'; }
+function queueItemId(item) { return item?.videoId || item?.url || ''; }
+function surfableChannels() {
+  const override = new URLSearchParams(location.search).get('surf');
+  return surfChannels(config.channels, override === 'all' ? 'all' : config.settings?.surfPolicy);
+}
 function queueKey(c) {
   const item = activeSource(c);
-  return item.type === 'youtube_queue' ? 'queue:' + c.id + ':' + item.items.map(video => video.videoId).join(',') : 'playlist:' + item.url;
+  return item.type === 'youtube_queue' ? 'queue:' + c.id + ':' + item.items.map(video => video.videoId).join(',') :
+    item.type === 'video_queue' ? 'video-queue:' + c.id + ':' + item.items.map(video => video.url).join(',') : 'playlist:' + item.url;
 }
 function sourceItems(c) {
   const item = activeSource(c);
-  if (item.type === 'youtube_queue') return item.items;
+  if (['youtube_queue', 'video_queue'].includes(item.type)) return item.items;
   return playlistSnapshots[item.url]?.videos || [];
 }
 function playbackKey(c) { return sourceItems(c).length ? queueKey(c) : activeSource(c).url; }
@@ -50,11 +59,11 @@ function prepareQueue(c, { renew = false, recordStart = false } = {}) {
   const key = playbackKey(c);
   if (!renew && sessionQueues.has(key)) return sessionQueues.get(key);
   const base = sourceItems(c);
-  const avoid = renew ? player.snapshot().videoId : lastStarts[key];
+  const avoid = renew ? (youtubeSource() ? player.snapshot().videoId : queueItemId(sessionQueues.get(key)?.[nativeQueueIndex])) : lastStarts[key];
   const queue = item.shuffleEachLaunch ? shuffledQueue(base, Math.random, avoid) : base.map(entry => ({ ...entry }));
   sessionQueues.set(key, queue);
   if (recordStart && item.shuffleEachLaunch && queue[0]) {
-    lastStarts[key] = queue[0].videoId;
+    lastStarts[key] = queueItemId(queue[0]);
     try { writeStorage(LAST_START_KEY, lastStarts); } catch (error) { log(error.message); }
   }
   return queue;
@@ -76,24 +85,35 @@ function renderPresentation(s = presentation.state) {
   const waiting = s.mode === 'tuning' || s.mode === 'buffering';
   const failed = s.mode === 'unavailable';
   const needsInput = s.mode === 'blocked' || s.mode === 'paused';
+  const youtube = !!c && ['youtube_playlist', 'youtube_queue'].includes(activeSource(c)?.type);
   $('app').dataset.mode = s.mode;
-  $('video-cover').hidden = ['playing', 'buffering', 'paused'].includes(s.mode);
+  $('app').dataset.youtube = youtube ? 'active' : 'inactive';
+  $('app').dataset.youtubeLayout = youtube && (waiting || needsInput || failed) ? 'split' : youtube ? 'watching' : 'none';
+  $('video-cover').hidden = youtube || ['playing', 'buffering', 'paused'].includes(s.mode);
   $('launch').hidden = s.mode !== 'launch' || !!panel;
-  $('channel-overlay').toggleAttribute('hidden', !!panel || s.mode === 'launch' || !(s.osdVisible || s.mode === 'directory' || c?.sourceType === 'audio_stream' && s.mode === 'playing'));
+  $('channel-overlay').toggleAttribute('hidden', youtube || !!panel || s.mode === 'launch' || !(s.osdVisible || s.mode === 'directory' || c?.sourceType === 'audio_stream' && s.mode === 'playing'));
   $('overlay-box').setAttribute('height', waiting ? '184' : '126');
   $('overlay-number').textContent = c ? number(c.id) : '';
   const titleSize = c && c.title.length > 13 ? 24 : 28;
   $('overlay-title').setAttribute('font-size', String(titleSize));
   fitText($('overlay-title'), c ? c.title : '', 250, titleSize, 700);
   $('overlay-status').textContent = waiting ? s.mode.toUpperCase() : '';
-  $('playback-message').toggleAttribute('hidden', !!panel || !(failed || needsInput));
+  $('playback-message').toggleAttribute('hidden', youtube || !!panel || !(failed || needsInput));
   $('playback-text').textContent = failed ? 'CHANNEL UNAVAILABLE' : '';
   $('start-playback').textContent = failed ? 'A RETRY' : 'PRESS A TO START';
   $('start-playback').setAttribute('y', failed ? '326' : '278');
   $('start-playback').setAttribute('aria-label', failed ? 'Retry channel' : 'Start playback');
   $('failure-guide').toggleAttribute('hidden', !failed);
-  $('playback-bug').hidden = !!panel || s.mode !== 'playing' || s.osdVisible || c?.sourceType === 'audio_stream';
+  $('playback-bug').hidden = youtube || !!panel || s.mode !== 'playing' || s.osdVisible || c?.sourceType === 'audio_stream';
   $('quick-controls').hidden = !!panel || ['launch', 'directory'].includes(s.mode);
+  $('station-card').hidden = !youtube || !!panel || s.mode === 'launch' || s.mode === 'playing';
+  if (youtube && c) {
+    $('station-card-number').textContent = number(c.id);
+    $('station-card-title').textContent = c.title;
+    $('station-card-status').textContent = failed ? 'CHANNEL UNAVAILABLE' : needsInput ? 'PRESS A TO START' : s.mode.toUpperCase();
+    $('station-card-art').textContent = activeSource(c).loadingArtwork || c.title;
+    $('station-start').hidden = !needsInput && !failed;
+  }
   $('directory').hidden = s.mode !== 'directory' || !!panel;
   syncDirectoryFrame(s.mode === 'directory');
   if (failed && lastPresentationMode !== 'unavailable') {
@@ -142,10 +162,13 @@ const native = new NativeMediaAdapter({
   buffering: requestId => { if (requestId === loadVersion) presentation.buffering(requestId); },
   blocked: requestId => { if (requestId === loadVersion) { presentation.blocked(requestId); recordCompatibility('requires_interaction', 'Press A to start playback.'); } },
   error: (message, requestId) => { if (requestId === loadVersion) { log(message); presentation.unavailable(requestId); } },
-  ended: requestId => { if (requestId === loadVersion && source()?.type === 'local_media') {
-    const next = localMedia.next(tuned);
-    if (next) native.tune({ type: next.type.startsWith('audio/') ? 'audio_stream' : 'local_media', url: next.url }, requestId);
-  } }
+  ended: requestId => {
+    if (requestId !== loadVersion) return;
+    if (source()?.type === 'local_media') {
+      const next = localMedia.next(tuned);
+      if (next) native.tune({ type: next.type.startsWith('audio/') ? 'audio_stream' : 'local_media', url: next.url }, requestId);
+    } else if (nativeQueueSource()) advanceNativeQueue();
+  }
 });
 
 function recordCompatibility(state, detail) {
@@ -166,6 +189,7 @@ function renderCompatibility() {
     const result = compatibility.get(c.id) || {};
     const row = document.createElement('div'); row.className = 'compatibility-row';
     const typeSupport = item.type === 'hls_stream' ? hlsNative ? 'native HLS' : hlsFallback ? 'HLS.js possible; codec/CORS unverified' : 'HLS unsupported' :
+      item.type === 'video_queue' ? 'HTML video; HTTPS MP4 candidates' :
       item.type === 'audio_stream' ? 'HTML audio; codec unverified' :
       item.type === 'local_media' ? 'local file picker; session only' :
       item.type === 'external_site' ? 'opens provider in this tab' : 'YouTube IFrame API';
@@ -177,7 +201,9 @@ function renderCompatibility() {
         ' · Autoplay: ' + (result.status === 'requires_interaction' ? 'interaction required' : result.status === 'desktop_playing' ? 'started in this browser' : 'untested'),
       'Startup: ' + (result.startupMs === undefined ? 'unmeasured' : result.startupMs + ' ms') +
         ' · Iframe: ' + (['youtube_playlist', 'youtube_queue'].includes(item.type) ? 'YouTube controlled' : item.type === 'external_site' ? 'not used' : 'not applicable'),
-      'Queue: ' + (['youtube_playlist', 'youtube_queue'].includes(item.type) ? sourceItems(c).length + ' items · shuffle each launch ' + (item.shuffleEachLaunch ? 'on' : 'off') : 'not applicable'),
+      'Queue: ' + (['youtube_playlist', 'youtube_queue', 'video_queue'].includes(item.type) ? sourceItems(c).length + ' items · shuffle each launch ' + (item.shuffleEachLaunch ? 'on' : 'off') : 'not applicable'),
+      'Surf: ' + (item.surfEligible ? 'included' : 'guide only') + ' · Ads: ' + item.adClass.replaceAll('_', ' ') +
+        (item.contentLicense ? ' · Rights: ' + item.contentLicense : ''),
       'Player instances: ' + player.createCount + ' · reused switches: ' + player.reuseCount,
       'Channel switch: ' + (item.type === 'external_site' ? 'leaves Garage TV' : 'inside Garage TV') +
         (result.detail ? ' · ' + result.detail : '')
@@ -200,6 +226,7 @@ function modeLabel() {
   if (!channel()) return '';
   if (source()?.type === 'external_site') return 'External destination · selecting a link leaves Garage TV';
   if (source()?.type === 'local_media') return 'Local files · choose files again after reloading';
+  if (source()?.type === 'video_queue') return 'Direct ad-free rotation · ' + (source().attribution || 'licensed source');
   if (!configured(channel())) return 'Source missing · configure in Settings';
   if (source()?.type === 'hls_stream' || source()?.type === 'audio_stream') return 'Continuous stream · provider controls its programming';
   if (source()?.type === 'youtube_queue') return source().shuffleEachLaunch ? 'Shuffled rotation · session position · official YouTube footage' : 'Continuous rotation · saved position · official YouTube footage';
@@ -209,6 +236,11 @@ function modeLabel() {
 
 function remember() {
   const c = channel();
+  if (c?.sourceType === 'video_queue' && !demo) {
+    const snapshot = native.snapshot();
+    sessionMarks.set(playbackKey(c), { index: nativeQueueIndex, seconds: snapshot.seconds });
+    return;
+  }
   if (!c || !['youtube_playlist', 'youtube_queue'].includes(c.sourceType) || c.schedule || demo || !player.ready) return;
   const key = playbackKey(c);
   if (player.activePlaylist !== key) return;
@@ -229,6 +261,7 @@ async function tune(id) {
   const version = ++loadVersion;
   tuneStartedAt = performance.now();
   tuned = id; selected = id; scheduledKey = ''; degraded = false; demo = false; queueErrors = 0;
+  nativeQueueIndex = 0;
   const selectedSource = activeSource(c);
   setPlayerInteraction(false);
   player.beginRequest(version, ['youtube_playlist', 'youtube_queue'].includes(selectedSource.type));
@@ -245,6 +278,14 @@ async function tune(id) {
     const file = localMedia.current(id);
     if (!file) { presentation.unavailable(version); log('Select local files in Settings first.'); return; }
     native.tune({ type: file.type.startsWith('audio/') ? 'audio_stream' : 'local_media', url: file.url }, version);
+    return;
+  }
+  if (selectedSource.type === 'video_queue') {
+    const queue = prepareQueue(c, { recordStart: true });
+    if (!queue.length) { presentation.unavailable(version); return; }
+    const mark = sessionMarks.get(playbackKey(c));
+    nativeQueueIndex = Math.max(0, Math.min(queue.length - 1, Number.isInteger(mark?.index) ? mark.index : 0));
+    native.tune({ type: 'local_media', url: queue[nativeQueueIndex].url, startSeconds: mark?.seconds || 0 }, version);
     return;
   }
   if (!configured(c)) { presentation.unavailable(version); return; }
@@ -290,6 +331,19 @@ function advanceQueue() {
   refreshGuide();
 }
 
+function advanceNativeQueue() {
+  const c = channel();
+  if (!c || !nativeQueueSource()) return;
+  let queue = prepareQueue(c);
+  const wrapped = nativeQueueIndex + 1 >= queue.length;
+  if (wrapped && activeSource(c).shuffleEachLaunch) queue = prepareQueue(c, { renew: true });
+  nativeQueueIndex = wrapped ? 0 : nativeQueueIndex + 1;
+  const item = queue[nativeQueueIndex];
+  if (!item) { presentation.unavailable(loadVersion); return; }
+  native.tune({ type: 'local_media', url: item.url }, loadVersion);
+  refreshGuide();
+}
+
 function loadScheduled(force = false) {
   const now = scheduleNow();
   if (!now || !player.ready) return;
@@ -303,6 +357,7 @@ function skip() {
     if (file) tune(tuned);
     return;
   }
+  if (nativeQueueSource()) { advanceNativeQueue(); return; }
   if (!youtubeSource() && !demo || !player.ready) return;
   const c = channel();
   if (c.schedule && !demo) {
@@ -317,9 +372,10 @@ function skip() {
 }
 
 function changeChannel(delta) {
-  const list = config.channels.filter(c => c.enabled);
+  const list = surfableChannels();
   const index = list.findIndex(c => c.id === tuned);
-  const c = list[(index + delta + list.length) % list.length];
+  const start = index < 0 ? (delta > 0 ? -1 : 0) : index;
+  const c = list[(start + delta + list.length) % list.length];
   closePanel(); tune(c.id);
 }
 
@@ -329,6 +385,11 @@ function programInfo(c) {
   if (selectedSource.type === 'external_site') return { now: c.id === 0 ? 'SELECT SERVICE' : 'OPEN PROVIDER', next: '-' };
   if (selectedSource.type === 'audio_stream' || selectedSource.type === 'hls_stream') return { now: selectedSource.name || c.title, next: '-' };
   if (selectedSource.type === 'local_media') return { now: localMedia.current(c.id)?.name || 'SELECT FILES', next: '-' };
+  if (selectedSource.type === 'video_queue' && sourceItems(c).length) {
+    const queue = prepareQueue(c);
+    const index = c.id === tuned ? nativeQueueIndex : 0;
+    return { now: queue[index]?.title || 'DIRECT ROTATION', next: queue[(index + 1) % queue.length]?.title || '-' };
+  }
   if (['youtube_playlist', 'youtube_queue'].includes(selectedSource.type) && !c.schedule && sourceItems(c).length) {
     if (c.id !== tuned || !player.ready || player.activePlaylist !== playbackKey(c)) return { now: 'SHUFFLED ROTATION', next: '-' };
     const index = player.snapshot().index;
@@ -413,7 +474,7 @@ function openPanel(name) {
   if (name === 'guide') {
     selected = presentation.state.current ?? tuned; refreshGuide(); $('guide-rows').focus({ preventScroll: true });
     status('Guide. ' + number(selected) + ' ' + config.channels.find(c => c.id === selected)?.title);
-  } else { if (name === 'settings') renderChannelSelect(tuned); if (name === 'diagnostics') renderCompatibility(); $(name).querySelector('button').focus(); }
+  } else { if (name === 'settings') { renderChannelSelect(tuned); renderViewingSettings(); } if (name === 'diagnostics') renderCompatibility(); $(name).querySelector('button').focus(); }
   renderPresentation();
 }
 
@@ -447,8 +508,34 @@ function save(next) {
   const validated = validateConfig(next);
   writeStorage(CONFIG_KEY, validated);
   config = validated;
-  renderDirectory(); refreshGuide(); renderServiceEditor();
+  renderDirectory(); refreshGuide(); renderServiceEditor(); renderViewingSettings(); fitStage();
 }
+
+function renderViewingSettings() {
+  if (!config || !$('surf-policy')) return;
+  $('surf-policy').value = config.settings.surfPolicy;
+  const scale = effectiveScreenScale();
+  $('fit-value').textContent = 'Screen fit ' + Math.round(scale * 100) + '% · offset ' + config.settings.screenOffsetX + ', ' + config.settings.screenOffsetY;
+  $('calibration-value').textContent = $('fit-value').textContent;
+}
+
+function updateViewing(mutator) {
+  const next = clone(config); mutator(next.settings); save(next);
+}
+
+function adjustScreen(scaleDelta = 0, xDelta = 0, yDelta = 0) {
+  updateViewing(settings => {
+    const current = settings.screenScale ?? effectiveScreenScale();
+    settings.screenScale = Math.max(0.85, Math.min(1, Math.round((current + scaleDelta) * 100) / 100));
+    settings.screenOffsetX = Math.max(-80, Math.min(80, settings.screenOffsetX + xDelta));
+    settings.screenOffsetY = Math.max(-80, Math.min(80, settings.screenOffsetY + yDelta));
+  });
+}
+
+function openCalibration() {
+  closePanel(); calibrationOpen = true; $('screen-calibration').hidden = false; renderViewingSettings(); $('calibration-smaller').focus();
+}
+function closeCalibration() { calibrationOpen = false; $('screen-calibration').hidden = true; $('app').focus({ preventScroll: true }); }
 
 function renderChannelSelect(id) {
   $('channel-select').replaceChildren();
@@ -481,15 +568,21 @@ function loadSourceForm() {
   $('channel-queue').value = item.items ? JSON.stringify(item.items, null, 2) : '';
   $('source-enabled').checked = item.enabled;
   $('source-shuffle').checked = item.shuffleEachLaunch;
+  $('source-surf').checked = item.surfEligible;
+  $('source-ad-class').value = item.adClass;
+  $('source-license').value = item.contentLicense;
+  $('source-attribution').value = item.attribution;
+  $('source-artwork').value = item.loadingArtwork;
   updateSourceFields();
 }
 function updateSourceFields() {
   const type = $('source-type').value;
   $('youtube-settings').hidden = type !== 'youtube_playlist';
-  $('queue-settings').hidden = type !== 'youtube_queue';
+  $('queue-settings').hidden = !['youtube_queue', 'video_queue'].includes(type);
   $('local-settings').hidden = type !== 'local_media';
-  $('source-url-label').hidden = type === 'local_media' || type === 'youtube_queue';
-  $('shuffle-setting').hidden = !['youtube_playlist', 'youtube_queue'].includes(type);
+  $('source-url-label').hidden = type === 'local_media' || ['youtube_queue', 'video_queue'].includes(type);
+  $('shuffle-setting').hidden = !['youtube_playlist', 'youtube_queue', 'video_queue'].includes(type);
+  $('queue-help').textContent = type === 'video_queue' ? 'Use HTTPS direct video URLs with title, provider, license, and attribution. Every item is validated before saving.' : 'Use official public YouTube videos. Queue order is playback order; kind is full, partial, or highlights. Garage TV does not control ads or embedding permission.';
   $('channel-playlist').placeholder = type === 'youtube_playlist' ? 'https://youtube.com/playlist?list=…' :
     type === 'hls_stream' ? 'https://example.com/live.m3u8' : 'https://example.com/';
 }
@@ -510,7 +603,7 @@ function importConfig(raw) {
   try {
     save(JSON.parse(raw)); bookmarks = {}; writeStorage(BOOKMARK_KEY, bookmarks);
     renderChannelSelect(); notice('Configuration imported and saved.');
-    const first = startupChannel(config.channels) || config.channels.find(c => c.enabled);
+    const first = startupChannel(surfableChannels()) || config.channels.find(c => c.enabled);
     tune(first.id);
   } catch (error) { notice('Import failed: ' + error.message); }
 }
@@ -528,6 +621,14 @@ function changeSource(delta) {
 
 function action(command) {
   if (!config) return;
+  if (calibrationOpen) {
+    if (command === 'back' || command === 'confirm') closeCalibration();
+    else if (command === 'left') adjustScreen(0, -4, 0);
+    else if (command === 'right') adjustScreen(0, 4, 0);
+    else if (command === 'up') adjustScreen(0, 0, -4);
+    else if (command === 'down') adjustScreen(0, 0, 4);
+    return;
+  }
   if (command === 'fullscreen') { toggleFullscreen(); return; }
   if (command === 'back') { if (panel) closePanel(); else openPanel('guide'); return; }
   if (['guide', 'settings', 'diagnostics', 'controls'].includes(command)) { openPanel(command); return; }
@@ -574,7 +675,7 @@ function syncFullscreen() {
 }
 document.addEventListener('fullscreenchange', syncFullscreen);
 function togglePlay() {
-  if (['hls_stream', 'audio_stream', 'local_media'].includes(source()?.type) && !demo) { native.toggle(loadVersion); return; }
+  if (['hls_stream', 'audio_stream', 'local_media', 'video_queue'].includes(source()?.type) && !demo) { native.toggle(loadVersion); return; }
   if (!player.ready) { startPlayback(); return; }
   if (player.snapshot().state !== 1 && scheduleNow()) loadScheduled(true);
   else player.toggle();
@@ -586,6 +687,7 @@ $('quick-channel-down').onclick = () => changeChannel(-1);
 $('quick-channel-up').onclick = () => changeChannel(1);
 $('quick-guide').onclick = () => openPanel('guide');
 $('quick-player').onclick = () => setPlayerInteraction($('app').dataset.playerInput !== 'player');
+$('station-start').onclick = () => startPlayback();
 $('open-settings').onclick = $('edit-services').onclick = () => openPanel('settings');
 $('open-diagnostics').onclick = () => openPanel('diagnostics');
 $('playback-bug').onclick = () => openPanel('controls');
@@ -598,11 +700,21 @@ $('toggle-play').onclick = togglePlay; $('toggle-mute').onclick = toggleMute;
 $('toggle-fullscreen').onclick = $('directory-fullscreen').onclick = toggleFullscreen;
 $('skip-video').onclick = () => skip();
 $('next-source').onclick = () => changeSource(1);
+$('surf-policy').onchange = () => updateViewing(settings => { settings.surfPolicy = $('surf-policy').value; });
+$('fit-smaller').onclick = $('calibration-smaller').onclick = () => adjustScreen(-0.01);
+$('fit-larger').onclick = $('calibration-larger').onclick = () => adjustScreen(0.01);
+$('fit-center').onclick = $('calibration-center').onclick = () => updateViewing(settings => { settings.screenOffsetX = 0; settings.screenOffsetY = 0; });
+$('open-calibration').onclick = openCalibration;
+$('calibration-left').onclick = () => adjustScreen(0, -4, 0);
+$('calibration-right').onclick = () => adjustScreen(0, 4, 0);
+$('calibration-up').onclick = () => adjustScreen(0, 0, -4);
+$('calibration-down').onclick = () => adjustScreen(0, 0, 4);
+$('calibration-done').onclick = closeCalibration;
 function startPlayback() {
   if (!channel()) return;
   if (presentation.state.mode === 'unavailable') { if (demo) $('test-youtube').click(); else tune(tuned); return; }
   if (!configured(channel()) && !demo) { tune(tuned); return; }
-  if (['hls_stream', 'audio_stream', 'local_media'].includes(source()?.type) && !demo) { native.play(loadVersion); return; }
+  if (['hls_stream', 'audio_stream', 'local_media', 'video_queue'].includes(source()?.type) && !demo) { native.play(loadVersion); return; }
   if (player.ready) {
     if (scheduleNow()) loadScheduled(true); else player.start();
   } else if (demo) $('test-youtube').click();
@@ -620,11 +732,16 @@ $('channel-form').onsubmit = event => {
     const index = Number($('source-select').value);
     const item = c.sources[index];
     item.type = $('source-type').value; item.name = $('source-name').value;
-    item.url = ['local_media', 'youtube_queue'].includes(item.type) ? '' : $('channel-playlist').value;
+    item.url = ['local_media', 'youtube_queue', 'video_queue'].includes(item.type) ? '' : $('channel-playlist').value;
     item.enabled = $('source-enabled').checked;
     item.shuffleEachLaunch = $('source-shuffle').checked;
+    item.surfEligible = $('source-surf').checked;
+    item.adClass = $('source-ad-class').value;
+    item.contentLicense = $('source-license').value;
+    item.attribution = $('source-attribution').value;
+    item.loadingArtwork = $('source-artwork').value;
     item.schedule = item.type !== 'youtube_playlist' || !$('channel-schedule').value.trim() ? null : JSON.parse($('channel-schedule').value);
-    item.items = item.type === 'youtube_queue' ? JSON.parse($('channel-queue').value) : null;
+    item.items = ['youtube_queue', 'video_queue'].includes(item.type) ? JSON.parse($('channel-queue').value) : null;
     item.verification = 'untested';
     c.activeSource = index;
     save(next); renderChannelSelect(id); notice('Channel ' + number(id) + ' saved.');
@@ -732,7 +849,8 @@ setInterval(() => {
   updateClock();
   if (scheduleNow() && player.ready && player.snapshot().state === 1) loadScheduled();
   if (panel === 'diagnostics') {
-    $('diagnostic-output').textContent = JSON.stringify({ userAgent: navigator.userAgent, viewport: [innerWidth, innerHeight], focused: document.hasFocus(), storage: 'Configuration stored in this browser; export to transfer', tuned, mode: modeLabel(), player: player.snapshot(), gamepad: padInfo }, null, 2);
+    const vv = window.visualViewport;
+    $('diagnostic-output').textContent = JSON.stringify({ userAgent: navigator.userAgent, layoutViewport: [innerWidth, innerHeight], visualViewport: vv ? { width: vv.width, height: vv.height, offsetLeft: vv.offsetLeft, offsetTop: vv.offsetTop, scale: vv.scale } : null, devicePixelRatio, fullscreen: !!document.fullscreenElement, screenFit: config.settings, focused: document.hasFocus(), storage: 'Configuration stored in this browser; export to transfer', tuned, mode: modeLabel(), player: youtubeSource() ? player.snapshot() : native.snapshot(), gamepad: padInfo }, null, 2);
   }
 }, 1000);
 setInterval(() => { refreshGuide(); remember(); }, 15000);
@@ -752,18 +870,34 @@ async function boot() {
       if (saved) { try { writeStorage(CONFIG_KEY, config); } catch (error) { log(error.message); } } }
     catch (error) { config = defaults; log('Saved configuration invalid; using deployable defaults. ' + error.message); }
     renderChannelSelect(config.channels[0].id); renderDirectory(); renderServiceEditor(); refreshGuide(); renderCompatibility();
-    const initial = startupChannel(config.channels);
+    const initial = startupChannel(surfableChannels());
     await tune(initial ? initial.id : (config.channels.find(c => c.id >= 1 && c.enabled) || config.channels.find(c => c.enabled)).id);
     if (!initial) log('No configured YouTube channels. Use S / Settings to add a source.');
   } catch (error) { log(error.message); presentation.unavailable(loadVersion); }
   finally { clearTimeout(launchTimer); }
 }
-function fitStage() {
-  const scale = Math.min(innerWidth / 1280, innerHeight / 720);
-  $('app').style.transform = 'scale(' + scale + ')';
-  $('app').style.left = (innerWidth - 1280 * scale) / 2 + 'px';
-  $('app').style.top = (innerHeight - 720 * scale) / 2 + 'px';
+function effectiveScreenScale() {
+  if (config?.settings?.screenScale !== null && config?.settings?.screenScale !== undefined) return config.settings.screenScale;
+  return /Xbox/i.test(navigator.userAgent) ? 0.96 : 1;
 }
-addEventListener('resize', fitStage); fitStage(); $('app').focus({ preventScroll: true });
+function fitStage() {
+  const viewport = window.visualViewport;
+  const width = viewport?.width || innerWidth;
+  const height = viewport?.height || innerHeight;
+  const left = viewport?.offsetLeft || 0;
+  const top = viewport?.offsetTop || 0;
+  const scale = Math.min(width / 1280, height / 720) * effectiveScreenScale();
+  const x = left + (width - 1280 * scale) / 2 + (config?.settings?.screenOffsetX || 0);
+  const y = top + (height - 720 * scale) / 2 + (config?.settings?.screenOffsetY || 0);
+  $('app').style.transform = 'scale(' + scale + ')';
+  $('app').style.left = x + 'px';
+  $('app').style.top = y + 'px';
+  renderViewingSettings();
+}
+addEventListener('resize', fitStage);
+addEventListener('orientationchange', fitStage);
+window.visualViewport?.addEventListener('resize', fitStage);
+window.visualViewport?.addEventListener('scroll', fitStage);
+fitStage(); $('app').focus({ preventScroll: true });
 document.fonts.ready.then(() => { renderPresentation(); refreshGuide(); });
 boot();

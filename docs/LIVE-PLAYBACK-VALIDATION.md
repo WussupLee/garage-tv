@@ -1,17 +1,18 @@
-# Live YouTube playback validation — 2026-10-19
+# Live playback validation — 2026-10-19
 
-The validation probe constructs a real YouTube IFrame player in desktop Microsoft Edge, reuses that iframe for each ID, and waits for the API PLAYING event. A public watch page or successful metadata request is not counted as playback.
+## YouTube
 
-## Results
+tests/probe-youtube.cjs creates one real YouTube IFrame player in desktop Microsoft Edge, reuses it for every ID, and requires the IFrame API PLAYING event. A public watch page or successful metadata request does not count.
 
-- All 100 entries across 90s MUSIC, Y2K HITS, ROCK / PUNK, ELECTRONIC, and SOUL / FUNK reached PLAYING.
-- All 60 official Adult Swim OFF THE AIR entries reached PLAYING.
-- All 20 official NASA SPACE TV entries reached PLAYING.
-- All 24 FOOTBALL, BASKETBALL, and FUTBOL queue entries reached PLAYING.
-- The supplied playlist snapshots were filtered to the 1, 13, 2, and 2 entries that played for SPORTS CLASSICS, INDIE / POP, RAP / R&B, and NOSTALGIA respectively.
+The final sweep covered 200 unique retained IDs. All 200 reached PLAYING. Observed startup was 217 ms minimum, 307 ms median, and 729 ms maximum in that probe session.
 
-The final sweep covered 220 unique video IDs. All 220 reached PLAYING. With one reused iframe in that desktop Edge session, observed per-item startup was 187 ms minimum, 245 ms median, and 613 ms maximum. These measurements describe the probe session and are not promises for normal playback, ads, other networks, or Xbox hardware.
+An additional group of 60 recognizable official artist and label videos was evaluated for the music channels. Fifty-six returned error 150 because the publisher did not permit this embedded playback context. The four that played were retained in ELECTRONIC and SOUL / FUNK; the rejected items were not shipped. The remaining music rotations use verified official sessions from KEXP, Audiotree, COLORS, and Cercle.
 
-Many otherwise public official music videos returned YouTube error 150, meaning the owner does not permit this embedded playback context. The deployable music rotations therefore use verified official performances from KEXP, Audiotree, COLORS, Boiler Room, and Cercle. Garage TV does not try to bypass the restriction.
+## Direct video
 
-Run node tests/probe-youtube.cjs --all to repeat the sweep. Results are provider and network dependent and may change. A desktop Edge result does not establish Xbox One autoplay, controller focus, codec behavior, or tune latency.
+tests/probe-direct.cjs loads every bundled video_queue item into one muted native video element in desktop Edge and requires its playing event. All 16 direct NASA and Internet Archive MP4s played. Observed startup was 384 ms minimum, 544 ms median, and 2,715 ms maximum.
+
+These measurements describe one desktop Edge session. They do not promise ordinary tune latency, future provider availability, regional access, network performance, autoplay, or Xbox behavior. Repeat with:
+
+- node tests/probe-youtube.cjs --all
+- npm run test:direct

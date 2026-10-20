@@ -29,13 +29,30 @@ async function main() {
     await page.addInitScript(fakeAPI);
     await page.addInitScript(() => { Math.random = () => 0; });
     await page.route('https://example.com/radio.mp3', route => route.fulfill({ contentType: 'audio/wav', body: wavFixture() }));
-    await page.goto('http://127.0.0.1:4173/garage-tv/');
+    await page.goto('http://127.0.0.1:4173/garage-tv/?surf=all');
+    await page.waitForFunction(() => document.querySelectorAll('.guide-row').length === 18);
+    await page.keyboard.press('g');
+    await page.locator('.guide-row[data-channel="1"]').click();
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
-    assert.equal(await page.locator('.guide-row').count(), 15);
+    assert.equal(await page.locator('.guide-row').count(), 18);
     assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'), '1');
     assert.equal(await page.locator('#quick-controls').isVisible(), true);
     assert.equal(await page.locator('#player').getAttribute('tabindex'), '-1');
     assert.equal(await page.locator('#app').getAttribute('data-player-input'), 'tv');
+    assert.equal(await page.locator('#video-cover').isHidden(), true);
+    const watchingGeometry = await page.evaluate(() => {
+      const stage = document.querySelector('#stage').getBoundingClientRect();
+      const controls = document.querySelector('#quick-controls').getBoundingClientRect();
+      return { stageBottom: stage.bottom, controlsTop: controls.top };
+    });
+    assert.ok(watchingGeometry.stageBottom <= watchingGeometry.controlsTop, 'Garage TV controls must remain outside the YouTube player');
+    await page.evaluate(() => window.__active.emit('onStateChange', 3));
+    await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'buffering');
+    assert.equal(await page.locator('#station-card').isVisible(), true);
+    assert.equal(await page.locator('#channel-overlay').isHidden(), true);
+    await page.screenshot({ path: 'test-results/youtube-split-startup.png' });
+    await page.evaluate(() => window.__active.emit('onStateChange', 1));
+    await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     await page.locator('#quick-player').click();
     assert.equal(await page.locator('#app').getAttribute('data-player-input'), 'player');
     assert.equal(await page.locator('#quick-player').textContent(), 'TV CONTROLS');
@@ -56,7 +73,7 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'), '4');
     assert.equal(await page.locator('#live-sports-frame').isVisible(), false);
-    assert.equal(page.url(), 'http://127.0.0.1:4173/garage-tv/');
+    assert.equal(page.url(), 'http://127.0.0.1:4173/garage-tv/?surf=all');
     assert.equal(await page.evaluate(() => window.__maxActive), 1);
     await page.locator('#quick-channel-up').click();
     await page.waitForFunction(() => document.querySelector('.is-tuned')?.dataset.channel === '5' && document.querySelector('#app').dataset.mode === 'playing');
@@ -64,6 +81,18 @@ async function main() {
     await page.keyboard.press('g');
     assert.equal(await page.locator('.is-tuned').getAttribute('data-channel'), '5');
     await page.keyboard.press('Escape');
+    await page.keyboard.press('s');
+    assert.equal(await page.locator('#surf-policy').inputValue(), 'ad_free');
+    await page.locator('#fit-smaller').click();
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('garage-tv.config.v2')).settings.screenScale), 0.99);
+    await page.locator('#open-calibration').click();
+    assert.equal(await page.locator('#screen-calibration').isVisible(), true);
+    const cornersVisible = await page.locator('#screen-calibration .corner').evaluateAll(nodes => nodes.every(node => {
+      const box = node.getBoundingClientRect(); return box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight;
+    }));
+    assert.equal(cornersVisible, true);
+    await page.screenshot({ path: 'test-results/screen-calibration.png' });
+    await page.locator('#calibration-done').click();
     await page.keyboard.press('s');
     await page.locator('#channel-select').selectOption('11');
     await page.locator('#source-type').selectOption('audio_stream');
@@ -73,7 +102,7 @@ async function main() {
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('garage-tv.config.v2')));
     assert.equal(stored.channels.find(c => c.id === 11).sources[0].type, 'audio_stream');
     await page.locator('#export-config').click();
-    assert.equal(JSON.parse(await page.locator('#config-json').inputValue()).channels.length, 15);
+    assert.equal(JSON.parse(await page.locator('#config-json').inputValue()).channels.length, 18);
     await page.locator('#config-json').fill('{bad json');
     await page.locator('#import-config').click();
     assert.match(await page.locator('#settings-notice').textContent(), /Import failed/);
@@ -85,7 +114,7 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#app').dataset.mode === 'playing');
     assert.equal(await page.locator('#native-audio').evaluate(node => node.paused), false);
     await page.keyboard.press('d');
-    assert.equal(await page.locator('.compatibility-row').count(), 15);
+    assert.equal(await page.locator('.compatibility-row').count(), 18);
     assert.match(await page.locator('.compatibility-row').nth(0).textContent(), /opens provider/i);
     const audioDiagnostic = await page.locator('.compatibility-row').nth(11).textContent();
     assert.match(audioDiagnostic, /startup: \d+ ms/i);
@@ -131,7 +160,7 @@ async function main() {
     assert.equal(await page.evaluate(() => window.__calls.at(-1).startSeconds), 42);
     assert.deepEqual(errors, []);
     const internalTypes = await page.evaluate(() => JSON.parse(localStorage.getItem('garage-tv.config.v2')).channels.filter(c => c.id > 0).map(c => c.sources[0].type));
-    assert.ok(internalTypes.every(type => type === 'youtube_playlist' || type === 'youtube_queue' || type === 'audio_stream'));
+    assert.ok(internalTypes.every(type => type === 'youtube_playlist' || type === 'youtube_queue' || type === 'video_queue' || type === 'audio_stream'));
     console.log('PASS: seamless embedded lineup, session queues, persistent TV controls, one reused YouTube player, guide focus without retune, native audio fixture (' + fixtureLatency + ' ms), settings and diagnostics.');
   } finally {
     if (browser) await browser.close();

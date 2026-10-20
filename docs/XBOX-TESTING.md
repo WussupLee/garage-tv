@@ -2,18 +2,18 @@
 
 Desktop automated checks and real desktop Edge playback do not establish Xbox One compatibility.
 
-1. Open https://zip1.io/garagetvlee in Xbox One Edge and enter browser fullscreen. Confirm the 1280 × 720 stage fits the television safe area.
-2. Start several channels across 001–014. Record whether each reaches video, needs A, shows an ad, or fails. Time selection to first visible frame.
-3. Surf rapidly with D-pad Up/Down and bumpers. Confirm only one stream is audible and an earlier request never replaces the latest channel.
-4. Use the persistent CH −, GUIDE, CH +, and PLAYER strip with the Edge cursor. Confirm it stays above video during playback, tuning, buffering, and unavailable states.
-5. Select PLAYER and use captions or provider controls. Select the always-visible TV CONTROLS button and confirm D-pad, keyboard, guide, and channel controls return to Garage TV.
-6. Open the guide while video plays. Move the white focus row and verify the ON marker remains on the playing channel. Press A to tune; close with B, Y, Esc, or G without changing channels.
-7. Reload several times. Confirm bundled channels choose different launch items, do not immediately repeat the last launch item when alternatives exist, and keep one session order until every item has played.
-8. Switch away from a channel and back during the same page session. Confirm its current video and timestamp resume. Reload and confirm shuffled channels begin a new rotation.
-9. Test PRESS A TO START, a provider ad, a 500 ms or longer stall, network loss, retry, and an unavailable item. The guide and channel strip must stay responsive.
-10. Check A/B/Y/Menu/LB/RB mappings in Diagnostics. Xbox Edge may reserve B or Menu; record controller ID, mapping, raw indices, and Edge version.
-11. Test F and the on-screen fullscreen control. Confirm browser Back, Settings, Diagnostics, import/export, and 1080p scaling if available.
-12. Configure LIVE SPORTS with an authorized HTTPS destination. Confirm Garage TV clearly warns before leaving and Edge Back returns to the app.
-13. Run for 30–60 minutes and record URL, channel, timestamp, controller action, on-screen state, and reproduction steps for any failure.
+1. Open https://zip1.io/garagetvlee in Xbox One Edge with browser chrome visible. Open Settings, choose CALIBRATE SCREEN, and confirm TL, TR, BL, and BR are visible. Use FIT SMALLER and X/Y controls until all four sit inside the television edge.
+2. Enter fullscreen with F or the on-screen control. Reopen calibration and verify the saved fit remains usable. Record separate browser-chrome and fullscreen results.
+3. Surf with D-pad Up/Down and bumpers. With AD-FREE DIRECT CHANNELS selected, confirm the loop contains SPACE TV, ARCHIVE TV, CARTOON TV, and SPORTS REELS, never opens another page, and keeps one audible stream.
+4. Open the guide and select several YouTube channels. Record whether each reaches video, needs A, shows an ad, or fails. Time selection to first visible frame.
+5. During a YouTube ad or loading period, confirm the provider player remains visible and the station card sits beside it. Confirm CH −, GUIDE, CH +, PLAYER, and TV CONTROLS never cover the iframe.
+6. Select PLAYER and use captions or provider controls. Select TV CONTROLS and confirm D-pad, keyboard, guide, and channel controls return to Garage TV.
+7. Open the guide while media plays. Move the white focus row and verify the ON marker remains on the playing channel. Press A to tune; close without confirming and verify playback is unchanged.
+8. Reload several times. Confirm queues choose different launch items, avoid the previous launch item when alternatives exist, and maintain one session order.
+9. Switch away and back in the same page session. Confirm the current item and timestamp resume.
+10. Test PRESS A TO START, a 500 ms or longer stall, network loss, retry, and unavailable media. Controls must remain responsive.
+11. Check A/B/Y/Menu/LB/RB in Diagnostics. Record controller ID, raw indices, Edge version, viewport values, fullscreen state, fit, and offsets.
+12. Configure LIVE SPORTS with an authorized HTTPS destination. Confirm the warning appears before leaving and Edge Back returns to Garage TV.
+13. Run for 30–60 minutes. Record URL, channel, timestamp, action, on-screen state, and reproduction steps for any failure.
 
 Do not report Xbox compatibility until these checks are completed on the physical console.

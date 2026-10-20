@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "lineupRevision": 3,
+  "lineupRevision": 4,
   "seed": "garage-tv-v2",
   "channels": [
     {
@@ -20,7 +20,12 @@
           "verification": "untested",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "unknown",
+          "surfEligible": false,
+          "contentLicense": "",
+          "attribution": "",
+          "loadingArtwork": "LIVE SPORTS"
         }
       ]
     },
@@ -42,7 +47,12 @@
           "capabilities": {
             "autoplay": false
           },
-          "shuffleEachLaunch": true
+          "shuffleEachLaunch": true,
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Sports playlist",
+          "loadingArtwork": "SPORTS CLASSICS"
         }
       ]
     },
@@ -64,7 +74,12 @@
           "capabilities": {
             "autoplay": false
           },
-          "shuffleEachLaunch": true
+          "shuffleEachLaunch": true,
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Indie / Pop playlist",
+          "loadingArtwork": "INDIE / POP"
         }
       ]
     },
@@ -86,7 +101,12 @@
           "capabilities": {
             "autoplay": false
           },
-          "shuffleEachLaunch": true
+          "shuffleEachLaunch": true,
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Rap / R&B playlist",
+          "loadingArtwork": "RAP / R&B"
         }
       ]
     },
@@ -108,7 +128,12 @@
           "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Nostalgia playlist",
+          "loadingArtwork": "NOSTALGIA"
         }
       ]
     },
@@ -122,7 +147,7 @@
       "sources": [
         {
           "type": "youtube_queue",
-          "name": "90s music verified rotation",
+          "name": "90s MUSIC official-video rotation",
           "items": [
             {
               "videoId": "gwgq-IWtcPE",
@@ -268,10 +293,15 @@
           "schedule": null,
           "enabled": true,
           "shuffleEachLaunch": true,
-          "verification": "desktop_playing",
+          "verification": "untested",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Official artist and label YouTube uploads",
+          "loadingArtwork": "90s MUSIC"
         }
       ]
     },
@@ -285,7 +315,7 @@
       "sources": [
         {
           "type": "youtube_queue",
-          "name": "y2k hits verified rotation",
+          "name": "Y2K HITS official-video rotation",
           "items": [
             {
               "videoId": "C5-5Uu7HNtA",
@@ -431,10 +461,15 @@
           "schedule": null,
           "enabled": true,
           "shuffleEachLaunch": true,
-          "verification": "desktop_playing",
+          "verification": "untested",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Official artist and label YouTube uploads",
+          "loadingArtwork": "Y2K HITS"
         }
       ]
     },
@@ -448,7 +483,7 @@
       "sources": [
         {
           "type": "youtube_queue",
-          "name": "rock / punk verified rotation",
+          "name": "ROCK / PUNK official-video rotation",
           "items": [
             {
               "videoId": "-enVr4wr0XI",
@@ -594,10 +629,15 @@
           "schedule": null,
           "enabled": true,
           "shuffleEachLaunch": true,
-          "verification": "desktop_playing",
+          "verification": "untested",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Official artist and label YouTube uploads",
+          "loadingArtwork": "ROCK / PUNK"
         }
       ]
     },
@@ -619,7 +659,12 @@
           "verification": "desktop_playing",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Off the Air playlist",
+          "loadingArtwork": "OFF THE AIR"
         }
       ]
     },
@@ -633,8 +678,22 @@
       "sources": [
         {
           "type": "youtube_queue",
-          "name": "electronic verified rotation",
+          "name": "ELECTRONIC official-video rotation",
           "items": [
+            {
+              "videoId": "UBS4Gi1y_nc",
+              "title": "Aphex Twin - Windowlicker (official video) 1080p HD",
+              "provider": "AphexAcid",
+              "year": 1999,
+              "kind": "full"
+            },
+            {
+              "videoId": "YeawPUpTHJA",
+              "title": "Goldfrapp - Strict Machine (Official HD Video)",
+              "provider": "Goldfrapp",
+              "year": 2003,
+              "kind": "full"
+            },
             {
               "videoId": "_3EuiU1qdpE",
               "title": "Hania Rani - Full Performance (Live on KEXP)",
@@ -760,29 +819,20 @@
               "provider": "Cercle",
               "year": 2023,
               "kind": "full"
-            },
-            {
-              "videoId": "Qu5RuOIUlhw",
-              "title": "Jungle - Full Performance (Live on KEXP)",
-              "provider": "KEXP",
-              "year": 2021,
-              "kind": "full"
-            },
-            {
-              "videoId": "Md4yIaUa7uA",
-              "title": "AURORA - Full Performance (Live on KEXP)",
-              "provider": "KEXP",
-              "year": 2025,
-              "kind": "full"
             }
           ],
           "schedule": null,
           "enabled": true,
           "shuffleEachLaunch": true,
-          "verification": "desktop_playing",
+          "verification": "untested",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Official artist and label YouTube uploads",
+          "loadingArtwork": "ELECTRONIC"
         }
       ]
     },
@@ -796,8 +846,22 @@
       "sources": [
         {
           "type": "youtube_queue",
-          "name": "soul / funk verified rotation",
+          "name": "SOUL / FUNK official-video rotation",
           "items": [
+            {
+              "videoId": "-_N0Cwg5iN4",
+              "title": "Greenspan: US Can Pay Any Debt It Has Because It Can Print Money To Pay It",
+              "provider": "SaveOurSovereignty3",
+              "year": 2003,
+              "kind": "full"
+            },
+            {
+              "videoId": "-OqrcUvrbRY",
+              "title": "Anderson .Paak - Come Down (Official Video)",
+              "provider": "Anderson Paak",
+              "year": 2016,
+              "kind": "full"
+            },
             {
               "videoId": "-A7MGoDeumc",
               "title": "Ama Lou - Tried Up | A COLORS SHOW",
@@ -923,29 +987,20 @@
               "provider": "KEXP",
               "year": 2017,
               "kind": "full"
-            },
-            {
-              "videoId": "kDySVsL7shc",
-              "title": "The Soul Rebels - Culture In The Ghetto (Live on KEXP)",
-              "provider": "KEXP",
-              "year": 2024,
-              "kind": "full"
-            },
-            {
-              "videoId": "NdfR_6dAlBA",
-              "title": "The Headhunters - Full Performance (Live on KEXP)",
-              "provider": "KEXP",
-              "year": 2024,
-              "kind": "full"
             }
           ],
           "schedule": null,
           "enabled": true,
           "shuffleEachLaunch": true,
-          "verification": "desktop_playing",
+          "verification": "untested",
           "capabilities": {
             "autoplay": false
-          }
+          },
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Official artist and label YouTube uploads",
+          "loadingArtwork": "SOUL / FUNK"
         }
       ]
     },
@@ -953,159 +1008,53 @@
       "id": 11,
       "order": 11,
       "title": "SPACE TV",
-      "description": "Documentaries and programs from official NASA channels.",
+      "description": "Direct, ad-free NASA archival video rotation.",
       "enabled": true,
       "activeSource": 0,
       "sources": [
         {
-          "type": "youtube_queue",
-          "name": "NASA rotation",
+          "type": "video_queue",
+          "name": "NASA direct archive",
+          "url": "",
+          "schedule": null,
           "items": [
             {
-              "videoId": "uSMGENDH_QI",
-              "title": "Cosmic Dawn",
+              "url": "https://images-assets.nasa.gov/video/NDTV000908_Apollo_Digest_Series_Spacecraft%20for%20Apollo/NDTV000908_Apollo_Digest_Series_Spacecraft%20for%20Apollo~medium.mp4",
+              "title": "Apollo Digest: Spacecraft for Apollo",
               "provider": "NASA",
-              "year": 2025,
-              "kind": "full"
+              "license": "NASA Media Usage Guidelines",
+              "attribution": "NASA · NDTV000908"
             },
             {
-              "videoId": "GNJpoP642wc",
-              "title": "The Journeys of Apollo",
+              "url": "https://images-assets.nasa.gov/video/KSC-1969-MH-NAS01-0001-Apollo_8_Review_Apollo_12_C7_Exit_White_Room-B_520/KSC-1969-MH-NAS01-0001-Apollo_8_Review_Apollo_12_C7_Exit_White_Room-B_520~mobile.mp4",
+              "title": "Apollo 8 and Apollo 12 Compilation",
+              "provider": "NASA Kennedy Space Center",
+              "license": "NASA Media Usage Guidelines",
+              "attribution": "NASA · KSC historical footage"
+            },
+            {
+              "url": "https://images-assets.nasa.gov/video/Apollo%2014%20Launch%20Coverage/Apollo%2014%20Launch%20Coverage~preview.mp4",
+              "title": "Apollo 14 Launch Coverage",
               "provider": "NASA",
-              "year": 2019,
-              "kind": "full"
+              "license": "NASA Media Usage Guidelines",
+              "attribution": "NASA · Apollo 14 archive"
             },
             {
-              "videoId": "SvaG0xDdP8g",
-              "title": "The Space Shuttle",
+              "url": "https://images-assets.nasa.gov/video/NDTV000907_Apollo_Digest_Series_Testing_Apollo/NDTV000907_Apollo_Digest_Series_Testing_Apollo~medium.mp4",
+              "title": "Apollo Digest: Testing Apollo",
               "provider": "NASA",
-              "year": 2011,
-              "kind": "full"
-            },
-            {
-              "videoId": "jOb2DQWvDvc",
-              "title": "Planetary Defenders",
-              "provider": "NASA",
-              "year": 2025,
-              "kind": "full"
-            },
-            {
-              "videoId": "SY-hQJ5pMd4",
-              "title": "JPL and the Space Age: Triumph at Saturn",
-              "provider": "NASA JPL",
-              "year": 2019,
-              "kind": "full"
-            },
-            {
-              "videoId": "qyphzmuzF18",
-              "title": "JPL and the Space Age: Explorer 1",
-              "provider": "NASA JPL",
-              "year": 2020,
-              "kind": "full"
-            },
-            {
-              "videoId": "UupndWl0G_I",
-              "title": "JPL and the Space Age: Destination Moon",
-              "provider": "NASA JPL",
-              "year": 2021,
-              "kind": "full"
-            },
-            {
-              "videoId": "cVrRzGbV9Mk",
-              "title": "JPL and the Space Age: To the Rescue",
-              "provider": "NASA JPL",
-              "year": 2022,
-              "kind": "full"
-            },
-            {
-              "videoId": "4bim5EEwvVI",
-              "title": "JPL and the Space Age: The Footsteps of Voyager",
-              "provider": "NASA JPL",
-              "year": 2023,
-              "kind": "full"
-            },
-            {
-              "videoId": "-kBngfyrvuk",
-              "title": "Space Out",
-              "provider": "NASA",
-              "year": 2023,
-              "kind": "full"
-            },
-            {
-              "videoId": "WS1dnopXMFY",
-              "title": "Other Worlds",
-              "provider": "NASA",
-              "year": 2024,
-              "kind": "full"
-            },
-            {
-              "videoId": "DIkqs9_FK28",
-              "title": "Down to Earth: The Astronaut's Perspective",
-              "provider": "NASA",
-              "year": 2020,
-              "kind": "full"
-            },
-            {
-              "videoId": "wqiVQFYHXbg",
-              "title": "NASA Explorers: Back to Gravity",
-              "provider": "NASA",
-              "year": 2020,
-              "kind": "full"
-            },
-            {
-              "videoId": "yae96AxH7V0",
-              "title": "Artemis I Path to the Pad",
-              "provider": "NASA",
-              "year": 2022,
-              "kind": "full"
-            },
-            {
-              "videoId": "u1FoytXVedQ",
-              "title": "25 Years of Flight Research",
-              "provider": "NASA Armstrong",
-              "year": 2024,
-              "kind": "full"
-            },
-            {
-              "videoId": "5b3n-u_0QAI",
-              "title": "Planetary Defenders: This Is Not an Exercise",
-              "provider": "NASA",
-              "year": 2026,
-              "kind": "full"
-            },
-            {
-              "videoId": "jHKf1eHp3eQ",
-              "title": "Artemis III: Our Next Step Back to the Moon",
-              "provider": "NASA",
-              "year": 2026,
-              "kind": "full"
-            },
-            {
-              "videoId": "MVt2139voxk",
-              "title": "For Earth, With Love: Artemis II",
-              "provider": "NASA",
-              "year": 2026,
-              "kind": "full"
-            },
-            {
-              "videoId": "ttiLcMUQq80",
-              "title": "Moonbound: For All Humanity",
-              "provider": "NASA",
-              "year": 2026,
-              "kind": "full"
-            },
-            {
-              "videoId": "bfw4G59j9uw",
-              "title": "Moonbound: Charting the Course",
-              "provider": "NASA",
-              "year": 2026,
-              "kind": "full"
+              "license": "NASA Media Usage Guidelines",
+              "attribution": "NASA · NDTV000907"
             }
           ],
-          "schedule": null,
           "enabled": true,
           "shuffleEachLaunch": true,
           "verification": "desktop_playing",
+          "adClass": "direct_ad_free",
+          "surfEligible": true,
+          "contentLicense": "Public domain or NASA public media; item attribution retained",
+          "attribution": "NASA / Internet Archive contributors",
+          "loadingArtwork": "ORBIT / APOLLO",
           "capabilities": {
             "autoplay": false
           }
@@ -1183,7 +1132,12 @@
               "kind": "highlights"
             }
           ],
-          "shuffleEachLaunch": true
+          "shuffleEachLaunch": true,
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Classic football rotation",
+          "loadingArtwork": "FOOTBALL"
         }
       ]
     },
@@ -1258,7 +1212,12 @@
               "kind": "highlights"
             }
           ],
-          "shuffleEachLaunch": true
+          "shuffleEachLaunch": true,
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Classic basketball rotation",
+          "loadingArtwork": "BASKETBALL"
         }
       ]
     },
@@ -1333,10 +1292,192 @@
               "kind": "highlights"
             }
           ],
-          "shuffleEachLaunch": true
+          "shuffleEachLaunch": true,
+          "adClass": "provider_ads",
+          "surfEligible": false,
+          "contentLicense": "Provider-controlled YouTube content",
+          "attribution": "Classic Futbol rotation",
+          "loadingArtwork": "FUTBOL"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "order": 15,
+      "title": "ARCHIVE TV",
+      "description": "Public-domain mid-century film rotation.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "video_queue",
+          "name": "Prelinger public-domain rotation",
+          "url": "",
+          "schedule": null,
+          "items": [
+            {
+              "url": "https://archive.org/download/Televisi1961/Televisi1961_512kb.mp4",
+              "title": "Television Remote Control (Tuner)",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Television Remote Control (Tuner) · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/DuckandC1951/DuckandC1951_512kb.mp4",
+              "title": "Duck and Cover",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Duck and Cover · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/WelcomeG1957/WelcomeG1957_512kb.mp4",
+              "title": "A Welcome Guest in the House",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "A Welcome Guest in the House · Internet Archive · Public Domain"
+            }
+          ],
+          "enabled": true,
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
+          "adClass": "direct_ad_free",
+          "surfEligible": true,
+          "contentLicense": "Public domain or NASA public media; item attribution retained",
+          "attribution": "NASA / Internet Archive contributors",
+          "loadingArtwork": "PUBLIC DOMAIN / FILM",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "order": 16,
+      "title": "CARTOON TV",
+      "description": "Public-domain animation rotation.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "video_queue",
+          "name": "Public-domain cartoon rotation",
+          "url": "",
+          "schedule": null,
+          "items": [
+            {
+              "url": "https://archive.org/download/Popeye_forPresident/Popeye_forPresident_512kb.mp4",
+              "title": "Popeye for President",
+              "provider": "Internet Archive Animation Collection",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Popeye for President · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/Popeye_Nearlyweds/Popeye_Nearlyweds_512kb.mp4",
+              "title": "Popeye: Nearlyweds",
+              "provider": "Internet Archive Animation Collection",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Popeye: Nearlyweds · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/bb_snow_white/bb_snow_white_512kb.mp4",
+              "title": "Betty Boop: Snow White",
+              "provider": "Internet Archive Animation Collection",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Betty Boop: Snow White · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/bb_minnie_the_moocher/bb_minnie_the_moocher_512kb.mp4",
+              "title": "Betty Boop: Minnie the Moocher",
+              "provider": "Internet Archive Animation Collection",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Betty Boop: Minnie the Moocher · Internet Archive · Public Domain"
+            }
+          ],
+          "enabled": true,
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
+          "adClass": "direct_ad_free",
+          "surfEligible": true,
+          "contentLicense": "Public domain or NASA public media; item attribution retained",
+          "attribution": "NASA / Internet Archive contributors",
+          "loadingArtwork": "PUBLIC DOMAIN / ANIMATION",
+          "capabilities": {
+            "autoplay": false
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "order": 17,
+      "title": "SPORTS REELS",
+      "description": "Public-domain vintage sports reels and instructional films.",
+      "enabled": true,
+      "activeSource": 0,
+      "sources": [
+        {
+          "type": "video_queue",
+          "name": "Public-domain sports rotation",
+          "url": "",
+          "schedule": null,
+          "items": [
+            {
+              "url": "https://archive.org/download/AmateurS1950/AmateurS1950_512kb.mp4",
+              "title": "Amateur Skating Champs",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Amateur Skating Champs · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/GoldenYe1960/GoldenYe1960_512kb.mp4",
+              "title": "The Golden Years",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "The Golden Years · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/OaklandW1950/OaklandW1950_512kb.mp4",
+              "title": "Oakland Women's Rowing Club",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Oakland Women's Rowing Club · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/LetsGoBo1955/LetsGoBo1955_512kb.mp4",
+              "title": "Let's Go Bowling",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Let's Go Bowling · Internet Archive · Public Domain"
+            },
+            {
+              "url": "https://archive.org/download/OaklandO1918/OaklandO1918_512kb.mp4",
+              "title": "Oakland Oaks Baseball Season Opens",
+              "provider": "Prelinger Archives",
+              "license": "https://creativecommons.org/publicdomain/mark/1.0/",
+              "attribution": "Oakland Oaks Baseball Season Opens · Internet Archive · Public Domain"
+            }
+          ],
+          "enabled": true,
+          "shuffleEachLaunch": true,
+          "verification": "desktop_playing",
+          "adClass": "direct_ad_free",
+          "surfEligible": true,
+          "contentLicense": "Public domain or NASA public media; item attribution retained",
+          "attribution": "NASA / Internet Archive contributors",
+          "loadingArtwork": "PUBLIC DOMAIN / SPORTS",
+          "capabilities": {
+            "autoplay": false
+          }
         }
       ]
     }
   ],
-  "services": []
+  "services": [],
+  "settings": {
+    "surfPolicy": "ad_free",
+    "screenScale": null,
+    "screenOffsetX": 0,
+    "screenOffsetY": 0
+  }
 }

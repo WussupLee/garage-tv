@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="theme-color" content="#000000">
   <meta name="description" content="Garage TV: a configurable television player for Xbox Edge.">
@@ -19,6 +19,13 @@
       <audio id="native-audio" preload="none" hidden></audio>
     </section>
     <div id="video-cover"></div>
+    <aside id="station-card" class="station-card" aria-live="polite" hidden>
+      <div id="station-card-art" class="station-card-art">GARAGE TV</div>
+      <div id="station-card-number" class="station-card-number"></div>
+      <div id="station-card-title" class="station-card-title"></div>
+      <div id="station-card-status" class="station-card-status"></div>
+      <button id="station-start" type="button" hidden>A START / RETRY</button>
+    </aside>
     <div id="launch"><img src="./assets/garage-tv-primary-white.svg" width="344" height="114" alt="Garage TV"></div>
     <svg id="channel-overlay" class="artwork" viewBox="0 0 1280 720" aria-hidden="true" hidden>
       <rect id="overlay-box" x="64" y="54" width="286" height="126" fill="#000"/>
@@ -64,19 +71,30 @@
         <label class="check"><input id="channel-enabled" type="checkbox"> Enabled</label>
         <label>Source<select id="source-select"></select></label>
         <div class="channel-manage"><button id="add-source" type="button">Add source</button><button id="remove-source" type="button">Remove source</button></div>
-        <label>Source type<select id="source-type"><option value="youtube_playlist">YouTube playlist</option><option value="youtube_queue">YouTube video queue</option><option value="hls_stream">HLS video</option><option value="audio_stream">Direct audio</option><option value="external_site">External website</option><option value="local_media">Local files</option></select></label>
+        <label>Source type<select id="source-type"><option value="youtube_playlist">YouTube playlist</option><option value="youtube_queue">YouTube video queue</option><option value="video_queue">Direct video queue</option><option value="hls_stream">HLS video</option><option value="audio_stream">Direct audio</option><option value="external_site">External website</option><option value="local_media">Local files</option></select></label>
         <label>Source label<input id="source-name" maxlength="80"></label>
         <label id="source-url-label">Source URL or playlist ID<input id="channel-playlist" type="text" autocomplete="off"></label>
         <label class="check"><input id="source-enabled" type="checkbox"> Source enabled</label>
+        <label class="check"><input id="source-surf" type="checkbox"> Include in Ad-Free Surf</label>
+        <label>Ad classification<select id="source-ad-class"><option value="direct_ad_free">Direct / ad-free</option><option value="provider_ads">Provider may insert ads</option><option value="unknown">Unknown or external</option></select></label>
+        <label>Content license or rights basis<input id="source-license" maxlength="240"></label>
+        <label>Attribution<input id="source-attribution" maxlength="240"></label>
+        <label>Loading artwork label<input id="source-artwork" maxlength="80"></label>
         <label id="shuffle-setting" class="check"><input id="source-shuffle" type="checkbox"> Shuffle with a new order each time Garage TV opens</label>
         <div id="youtube-settings">
           <label>Optional virtual schedule JSON<textarea id="channel-schedule" rows="4" spellcheck="false" placeholder="Leave empty for continuous playlist playback"></textarea></label>
           <p class="muted">Schedule requires verified durations in seconds, an ISO epoch, and video IDs. See the repository’s schedule documentation. Playlist mode does not advance while away.</p>
         </div>
-        <div id="queue-settings" hidden><label>Video queue JSON<textarea id="channel-queue" rows="8" spellcheck="false" placeholder='[{"videoId":"…","title":"…","provider":"…","year":2006,"kind":"full"}]'></textarea></label><p class="muted">Use official public YouTube videos. Queue order is playback order; kind is full, partial, or highlights. Garage TV does not control ads or embedding permission.</p></div>
+        <div id="queue-settings" hidden><label>Video queue JSON<textarea id="channel-queue" rows="8" spellcheck="false" placeholder='[{"videoId":"…","title":"…","provider":"…","year":2006,"kind":"full"}]'></textarea></label><p id="queue-help" class="muted">Use official public YouTube videos. Queue order is playback order; kind is full, partial, or highlights. Garage TV does not control ads or embedding permission.</p></div>
         <div id="local-settings" hidden><label>Choose local audio/video files<input id="local-files" type="file" accept="audio/*,video/*" multiple></label><p class="muted">Files stay in this browser session. Choose them again after reloading.</p></div>
         <button type="submit">Save channel</button>
       </form>
+      <section aria-labelledby="viewing-title"><h2 id="viewing-title">Viewing and screen fit</h2>
+        <label>Channel surfing<select id="surf-policy"><option value="ad_free">Ad-Free Surf · skip provider-ad channels</option><option value="all">All enabled channels</option></select></label>
+        <p class="muted">YouTube channels remain available in the guide when Ad-Free Surf skips them.</p>
+        <div class="channel-manage"><button id="fit-smaller" type="button">Fit −</button><button id="fit-larger" type="button">Fit +</button><button id="fit-center" type="button">Center</button><button id="open-calibration" type="button">Screen calibration</button></div>
+        <p id="fit-value" class="muted"></p>
+      </section>
       <section aria-labelledby="services-title"><h2 id="services-title">LIVE SPORTS links</h2><div id="service-edit-list"></div>
         <form id="service-form"><input id="service-index" type="hidden" value="">
           <label>Service name<input id="service-name" maxlength="80" required></label><label>HTTPS URL<input id="service-url" type="url" required placeholder="https://…"></label>
@@ -101,6 +119,12 @@
     <nav id="quick-controls" class="quick-controls" aria-label="Channel controls" hidden>
       <button id="quick-channel-down" type="button" aria-label="Previous channel">CH −</button><button id="quick-guide" type="button">GUIDE</button><button id="quick-channel-up" type="button" aria-label="Next channel">CH +</button><button id="quick-player" type="button" aria-pressed="false">PLAYER</button>
     </nav>
+    <section id="screen-calibration" class="screen-calibration" aria-labelledby="calibration-title" hidden>
+      <b class="corner corner-tl">TL</b><b class="corner corner-tr">TR</b><b class="corner corner-bl">BL</b><b class="corner corner-br">BR</b>
+      <div class="calibration-controls"><h1 id="calibration-title">SCREEN FIT</h1><p>Adjust until all four corner labels are visible.</p>
+        <div><button id="calibration-smaller" type="button">FIT −</button><button id="calibration-larger" type="button">FIT +</button><button id="calibration-left" type="button">←</button><button id="calibration-right" type="button">→</button><button id="calibration-up" type="button">↑</button><button id="calibration-down" type="button">↓</button><button id="calibration-center" type="button">CENTER</button><button id="calibration-done" type="button">DONE</button></div>
+        <p id="calibration-value"></p></div>
+    </section>
   <footer id="controls" class="panel controls" aria-label="Television controls" hidden>
     <button id="channel-down" type="button">CH −</button><button id="channel-up" type="button">CH +</button><button id="toggle-guide" type="button">Guide</button><button id="toggle-fullscreen" type="button">FULL SCREEN</button><button id="toggle-play" type="button">Play / Pause</button><button id="toggle-mute" type="button">Mute</button><button id="skip-video" type="button">Next video</button><button id="next-source" type="button">Next source</button><button id="open-settings" type="button">Settings</button><button id="open-diagnostics" type="button">Diagnostics</button><button type="button" data-close>Close</button>
   </footer>
